@@ -1,0 +1,15 @@
+{
+  "name": "slrye",
+  "version": "0.1.0",
+  "dependencies": [
+    "glfw3",
+    {
+      "name": "imgui",
+      "features": [
+        "glfw-binding",
+        "vulkan-binding",
+        "docking-experimental"
+      ]
+    }
+  ]
+}

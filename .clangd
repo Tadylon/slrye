@@ -1,0 +1,5 @@
+Diagnostics:
+  UnusedIncludes: None
+
+CompileFlags:
+  Add: [-Wno-module-odr-violation, -Wno-c++98-compat, -Wno-c++98-compat-pedantic]

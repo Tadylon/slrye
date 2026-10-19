@@ -4,7 +4,7 @@
 
 namespace slrye
 {
-void render(ImGuiIO& io);
+ImVec4 render(ImGuiIO& io);
 
 
 }

@@ -14,10 +14,6 @@ find_package(imgui CONFIG REQUIRED)
 # 寻找系统安装的 Vulkan SDK（会利用你已经配置好的 Vulkan SDK 环境变量）
 find_package(Vulkan REQUIRED)
 
-# 3. 设置 C++ 标准为 C++17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 option(SLRYE_BUILD_EXAMPLES "Build examples" OFF)
 option(SLRYE_BUILD_TESTS    "Build tests"    OFF)
 option(SLRYE_BUILD_TOOLS    "Build tools"    OFF)

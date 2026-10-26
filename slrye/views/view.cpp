@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
 
-#include <render.h>
+#include <views/view.h>
 
 namespace slrye{
 

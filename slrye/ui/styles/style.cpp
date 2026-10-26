@@ -1,6 +1,6 @@
 #include <imgui.h>
-#include <style.h>
-#include <spectrum.h>
+#include <ui/styles/style.h>
+#include <ui/styles/spectrum.h>
 
 namespace slrye{
 

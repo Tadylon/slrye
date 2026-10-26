@@ -16,14 +16,12 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
+#include <core/vulkan_backend.h>
 #include <stdio.h>          // printf, fprintf
 #include <stdlib.h>         // abort
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
-#include <style.h>
-#include <render.h>
 
 // Volk headers
 #ifdef IMGUI_IMPL_VULKAN_USE_VOLK
@@ -53,6 +51,7 @@ static uint32_t                 g_QueueFamily = (uint32_t)-1;
 static VkQueue                  g_Queue = VK_NULL_HANDLE;
 static VkPipelineCache          g_PipelineCache = VK_NULL_HANDLE;
 static VkDescriptorPool         g_DescriptorPool = VK_NULL_HANDLE;
+static GLFWwindow*              g_Window = nullptr;
 
 static ImGui_ImplVulkanH_Window g_MainWindowData;
 static uint32_t                 g_MinImageCount = 2;
@@ -352,88 +351,75 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
     wd->SemaphoreIndex = (wd->SemaphoreIndex + 1) % wd->SemaphoreCount; // Now we can use the next set of semaphores
 }
 
-// Main code
-int main(int, char**)
+namespace slrye
+{
+
+VulkanBackend::VulkanBackend() = default;
+
+VulkanBackend::~VulkanBackend()
+{
+    shutdown();
+}
+
+bool VulkanBackend::initialize(const char* title, int width, int height)
 {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
-        return 1;
+    {
+        return false;
+    }
 
-    // Create window with Vulkan context
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    // 在初始化 GLFW 并创建窗口之前，加上这些配置：
-    // glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);     // 隐藏系统的标题栏和边框
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE); // 开启窗口透明支持（可选）
-    
-    float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor()); // Valid on GLFW 3.3+ only
-    GLFWwindow* window = glfwCreateWindow((int)(1280 * main_scale), (int)(800 * main_scale), "Slrye", nullptr, nullptr);
+    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
+
+    const float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+    GLFWwindow* window = glfwCreateWindow(
+        static_cast<int>(width * main_scale),
+        static_cast<int>(height * main_scale),
+        title,
+        nullptr,
+        nullptr);
+
+    if (window == nullptr)
+    {
+        glfwTerminate();
+        return false;
+    }
+    g_Window = window;
+
     if (!glfwVulkanSupported())
     {
-        printf("GLFW: Vulkan Not Supported\n");
-        return 1;
+        fprintf(stderr, "GLFW: Vulkan Not Supported\n");
+        glfwDestroyWindow(window);
+        glfwTerminate();
+        return false;
     }
 
     ImVector<const char*> extensions;
     uint32_t extensions_count = 0;
     const char** glfw_extensions = glfwGetRequiredInstanceExtensions(&extensions_count);
     for (uint32_t i = 0; i < extensions_count; i++)
-        extensions.push_back(glfw_extensions[i]);
-    SetupVulkan(extensions);
-
-    // Create Window Surface
-    VkSurfaceKHR surface;
-    VkResult err = glfwCreateWindowSurface(g_Instance, window, g_Allocator, &surface);
-    check_vk_result(err);
-
-    // Create Framebuffers
-    int w, h;
-    glfwGetFramebufferSize(window, &w, &h);
-    ImGui_ImplVulkanH_Window* wd = &g_MainWindowData;
-    SetupVulkanWindow(wd, surface, w, h);
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); 
-    // (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;         // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;       // Enable Multi-Viewport / Platform Windows
-    
-    ImGui::SetNextWindowPos(ImVec2(0,0));
-    ImGui::SetNextWindowSize(io.DisplaySize);
-    //io.ConfigViewportsNoAutoMerge = true;
-    //io.ConfigViewportsNoTaskBarIcon = true;
-
-    ImGuiStyle& style = ImGui::Spectrum::StyleColorsSpectrum();
-    // ImGuiStyle& style = slrye::imgui_style_enemymouse();
-    // ImGuiStyle& style = slrye::imgui_style_spectrum();
-    
-    // // Setup Dear ImGui style
-    // ImGui::StyleColorsDark();
-    // //ImGui::StyleColorsLight();
-    // //style.FontSizeBase = 16.0f;           // Default to 13.0f when unspecified, which allows crisp legacy font for non-4K screens.
-    // style.FrameRounding = 3.0f;
-    // style.GrabRounding = 3.0f;
-
-    // // Setup scaling
-    // style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
-    // style.FontScaleDpi = main_scale;        // Set initial font scale. (in docking branch: using io.ConfigDpiScaleFonts=true automatically overrides this for every window depending on the current monitor)
-    io.ConfigDpiScaleFonts = true;          // [Experimental] Automatically overwrite style.FontScaleDpi in Begin() when Monitor DPI changes. This will scale fonts but _NOT_ scale sizes/padding for now.
-    io.ConfigDpiScaleViewports = true;      // [Experimental] Scale Dear ImGui and Platform Windows when Monitor DPI changes.
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
     {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+        extensions.push_back(glfw_extensions[i]);
     }
 
-    // Setup Platform/Renderer backends
+    SetupVulkan(extensions);
+
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
+    const VkResult surface_result = glfwCreateWindowSurface(g_Instance, window, g_Allocator, &surface);
+    check_vk_result(surface_result);
+
+    int framebuffer_width = 0;
+    int framebuffer_height = 0;
+    glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
+    ImGui_ImplVulkanH_Window* window_data = &g_MainWindowData;
+    SetupVulkanWindow(window_data, surface, framebuffer_width, framebuffer_height);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
     ImGui_ImplGlfw_InitForVulkan(window, true);
     ImGui_ImplVulkan_InitInfo init_info = {};
-    //init_info.ApiVersion = VK_API_VERSION_1_3;              // Pass in your value of VkApplicationInfo::apiVersion, otherwise will default to header version.
     init_info.Instance = g_Instance;
     init_info.PhysicalDevice = g_PhysicalDevice;
     init_info.Device = g_Device;
@@ -442,93 +428,103 @@ int main(int, char**)
     init_info.PipelineCache = g_PipelineCache;
     init_info.DescriptorPool = g_DescriptorPool;
     init_info.MinImageCount = g_MinImageCount;
-    init_info.ImageCount = wd->ImageCount;
+    init_info.ImageCount = window_data->ImageCount;
     init_info.Allocator = g_Allocator;
-    init_info.PipelineInfoMain.RenderPass = wd->RenderPass;
+    init_info.PipelineInfoMain.RenderPass = window_data->RenderPass;
     init_info.PipelineInfoMain.Subpass = 0;
     init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.CheckVkResultFn = check_vk_result;
     ImGui_ImplVulkan_Init(&init_info);
 
-    // Load Fonts
-    // - If fonts are not explicitly loaded, Dear ImGui will select an embedded font: either AddFontDefaultVector() or AddFontDefaultBitmap().
-    //   This selection is based on (style.FontSizeBase * style.FontScaleMain * style.FontScaleDpi) reaching a threshold.
-    // - You can load multiple fonts and use ImGui::PushFont()/PopFont() to select them.
-    // - If a file cannot be loaded, AddFont functions will return a nullptr. Please handle those errors in your code (e.g. use an assertion, display an error and quit).
-    // - Read 'docs/FONTS.md' for more instructions and details.
-    // - Use '#define IMGUI_ENABLE_FREETYPE' in your imconfig file to use FreeType for higher quality font rendering.
-    // - Remember that in C/C++ if you want to include a backslash \ in a string literal you need to write a double backslash \\ !
-    //io.Fonts->AddFontDefaultVector();
-    //io.Fonts->AddFontDefaultBitmap();
-    //io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\segoeui.ttf");
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/DroidSans.ttf");
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Roboto-Medium.ttf");
-    //io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf");
-    ImFont* font = io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Arial.ttf");
-    //IM_ASSERT(font != nullptr);
+    initialized_ = true;
+    return true;
+}
 
-    // static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+bool VulkanBackend::should_close() const
+{
+    return g_Window != nullptr && glfwWindowShouldClose(g_Window) != 0;
+}
 
+bool VulkanBackend::begin_frame()
+{
+    glfwPollEvents();
 
-    // Main loop
-    while (!glfwWindowShouldClose(window))
+    int framebuffer_width = 0;
+    int framebuffer_height = 0;
+    glfwGetFramebufferSize(g_Window, &framebuffer_width, &framebuffer_height);
+    if (framebuffer_width > 0 && framebuffer_height > 0 &&
+        (g_SwapChainRebuild || g_MainWindowData.Width != framebuffer_width || g_MainWindowData.Height != framebuffer_height))
     {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
-        glfwPollEvents();
-
-        // Resize swap chain?
-        int fb_width, fb_height;
-        glfwGetFramebufferSize(window, &fb_width, &fb_height);
-        if (fb_width > 0 && fb_height > 0 && (g_SwapChainRebuild || g_MainWindowData.Width != fb_width || g_MainWindowData.Height != fb_height))
-        {
-            ImGui_ImplVulkan_SetMinImageCount(g_MinImageCount);
-            ImGui_ImplVulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd, g_QueueFamily, g_Allocator, fb_width, fb_height, g_MinImageCount, 0);
-            g_MainWindowData.FrameIndex = 0;
-            g_SwapChainRebuild = false;
-        }
-        if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
-        {
-            ImGui_ImplGlfw_Sleep(10);
-            continue;
-        }
-
-        // Start the Dear ImGui frame
-        ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        ImVec4 clear_color = slrye::render(io);
-
-        // Rendering
-        ImGui::Render();
-        ImDrawData* main_draw_data = ImGui::GetDrawData();
-        const bool main_is_minimized = (main_draw_data->DisplaySize.x <= 0.0f || main_draw_data->DisplaySize.y <= 0.0f);
-        wd->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
-        wd->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
-        wd->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
-        wd->ClearValue.color.float32[3] = clear_color.w;
-        if (!main_is_minimized)
-            FrameRender(wd, main_draw_data);
-
-        // Update and Render additional Platform Windows
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-        }
-
-        // Present Main Platform Window
-        if (!main_is_minimized)
-            FramePresent(wd);
+        ImGui_ImplVulkan_SetMinImageCount(g_MinImageCount);
+        ImGui_ImplVulkanH_CreateOrResizeWindow(
+            g_Instance,
+            g_PhysicalDevice,
+            g_Device,
+            &g_MainWindowData,
+            g_QueueFamily,
+            g_Allocator,
+            framebuffer_width,
+            framebuffer_height,
+            g_MinImageCount,
+            0);
+        g_MainWindowData.FrameIndex = 0;
+        g_SwapChainRebuild = false;
     }
 
-    // Cleanup
-    err = vkDeviceWaitIdle(g_Device);
-    check_vk_result(err);
+    if (glfwGetWindowAttrib(g_Window, GLFW_ICONIFIED) != 0)
+    {
+        ImGui_ImplGlfw_Sleep(10);
+        return false;
+    }
+
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    return true;
+}
+
+void VulkanBackend::render(ImVec4 clear_color)
+{
+    ImGui_ImplVulkanH_Window* window_data = &g_MainWindowData;
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui::Render();
+    ImDrawData* draw_data = ImGui::GetDrawData();
+    const bool main_is_minimized =
+        draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f;
+
+    window_data->ClearValue.color.float32[0] = clear_color.x * clear_color.w;
+    window_data->ClearValue.color.float32[1] = clear_color.y * clear_color.w;
+    window_data->ClearValue.color.float32[2] = clear_color.z * clear_color.w;
+    window_data->ClearValue.color.float32[3] = clear_color.w;
+
+    if (!main_is_minimized)
+    {
+        FrameRender(window_data, draw_data);
+    }
+
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    {
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+    }
+
+    if (!main_is_minimized)
+    {
+        FramePresent(window_data);
+    }
+}
+
+void VulkanBackend::shutdown()
+{
+    if (!initialized_)
+    {
+        return;
+    }
+
+    const VkResult wait_result = vkDeviceWaitIdle(g_Device);
+    check_vk_result(wait_result);
+
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
@@ -536,8 +532,15 @@ int main(int, char**)
     CleanupVulkanWindow(&g_MainWindowData);
     CleanupVulkan();
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(g_Window);
     glfwTerminate();
+    g_Window = nullptr;
+    initialized_ = false;
+}
 
-    return 0;
+ImGuiIO& VulkanBackend::io() const
+{
+    return ImGui::GetIO();
+}
+
 }

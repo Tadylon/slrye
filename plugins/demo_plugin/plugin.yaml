@@ -1,0 +1,7 @@
+id: com.slrye.demo
+name: Demo Plugin
+version: 0.1.0
+author: slrye
+description: Sample native plugin used to validate the plugin loader.
+library: demo_plugin
+enabled: true

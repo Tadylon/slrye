@@ -1,29 +1,31 @@
-# 1. 声明 CMake 的最低版本要求
-cmake_minimum_required(VERSION 4.3)
+cmake_minimum_required(VERSION 3.24)
+
+project(Slrye VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-# 2. 定义项目名称
-project(Slrye CXX)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
-# 寻找通过 vcpkg 安装的包
-find_package(glfw3 CONFIG REQUIRED)
-find_package(imgui CONFIG REQUIRED)
-# 寻找系统安装的 Vulkan SDK（会利用你已经配置好的 Vulkan SDK 环境变量）
-find_package(Vulkan REQUIRED)
+include(cmake/SlryePlugin.cmake)
 
 option(SLRYE_BUILD_EXAMPLES "Build examples" OFF)
 option(SLRYE_BUILD_TESTS    "Build tests"    OFF)
 option(SLRYE_BUILD_TOOLS    "Build tools"    OFF)
-
+option(SLRYE_BUILD_PLUGINS  "Build bundled plugins" ON)
+option(SLRYE_ENABLE_CONSOLE "Keep a console window attached to the editor executable" ON)
 
 add_subdirectory(slrye)
 
+if(SLRYE_BUILD_PLUGINS)
+    add_subdirectory(plugins)
+endif()
+
 if(SLRYE_BUILD_TESTS)
     enable_testing()
-    add_subdirectory(tests)
+    add_subdirectory(test)
 endif()
 
 if(SLRYE_BUILD_TOOLS)

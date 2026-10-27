@@ -18,6 +18,8 @@ TEST_CASE("Editor settings preserve theme, viewport, and recent projects")
     settings.camera_position = glm::vec3(2.0f, 3.0f, 4.0f);
     settings.camera_yaw_degrees = -35.0f;
     settings.camera_pitch_degrees = 12.5f;
+    settings.camera_move_speed = 12.0f;
+    settings.show_viewport_grid = false;
     settings.recent_projects = {
         directory.path() / "first.slproj",
         directory.path() / "second.slproj"};
@@ -32,6 +34,8 @@ TEST_CASE("Editor settings preserve theme, viewport, and recent projects")
     CHECK(loaded->camera_position == glm::vec3(2.0f, 3.0f, 4.0f));
     CHECK(loaded->camera_yaw_degrees == Catch::Approx(-35.0f));
     CHECK(loaded->camera_pitch_degrees == Catch::Approx(12.5f));
+    CHECK(loaded->camera_move_speed == Catch::Approx(12.0f));
+    CHECK_FALSE(loaded->show_viewport_grid);
     CHECK(loaded->recent_projects == settings.recent_projects);
 }
 

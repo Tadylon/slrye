@@ -432,6 +432,15 @@ bool VulkanBackend::initialize(const char* title, int width, int height)
     init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.CheckVkResultFn = check_vk_result;
 
+    context_ = VulkanContext{
+        g_Instance,
+        g_PhysicalDevice,
+        g_Device,
+        g_Queue,
+        g_QueueFamily,
+        g_DescriptorPool,
+        g_Allocator};
+
     initialized_ = true;
     imgui_backend_ = std::make_unique<ImGuiBackend>();
     if (!imgui_backend_->initialize(window, init_info))
@@ -535,11 +544,17 @@ void VulkanBackend::shutdown()
     glfwTerminate();
     g_Window = nullptr;
     initialized_ = false;
+    context_ = {};
 }
 
 ImGuiIO& VulkanBackend::io() const
 {
     return imgui_backend_->io();
+}
+
+const VulkanContext& VulkanBackend::context() const noexcept
+{
+    return context_;
 }
 
 }

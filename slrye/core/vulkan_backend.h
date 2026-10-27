@@ -4,6 +4,8 @@
 
 #include <imgui.h>
 
+#include <core/vulkan_context.h>
+
 namespace slrye
 {
 
@@ -27,8 +29,10 @@ public:
     void shutdown();
 
     ImGuiIO& io() const;
+    [[nodiscard]] const VulkanContext& context() const noexcept;
 
 private:
+    VulkanContext context_;
     std::unique_ptr<ImGuiBackend> imgui_backend_;
     bool initialized_ = false;
 };

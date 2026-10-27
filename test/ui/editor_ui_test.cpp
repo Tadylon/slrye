@@ -72,7 +72,7 @@ TEST_CASE("Editor shell submits the workspace, docking area, and status bar")
     editor_ui.render(io);
     ImGui::Render();
 
-    CHECK(ImGui::FindWindowByName("SLRYE") != nullptr);
+    CHECK(ImGui::FindWindowByName("Viewport") != nullptr);
     REQUIRE(ImGui::GetDrawData() != nullptr);
     CHECK(ImGui::GetDrawData()->Valid);
     CHECK(ImGui::GetDrawData()->CmdListsCount > 0);

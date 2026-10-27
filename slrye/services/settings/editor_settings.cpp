@@ -152,6 +152,13 @@ std::optional<EditorSettings> load_editor_settings(
                 viewport["yaw_degrees"], "yaw_degrees", settings.camera_yaw_degrees);
             settings.camera_pitch_degrees = read_number(
                 viewport["pitch_degrees"], "pitch_degrees", settings.camera_pitch_degrees);
+            settings.camera_move_speed = read_number(
+                viewport["camera_move_speed"], "camera_move_speed", settings.camera_move_speed);
+            const YAML::Node show_grid = viewport["show_grid"];
+            if (show_grid)
+            {
+                settings.show_viewport_grid = show_grid.as<bool>();
+            }
         }
 
         const YAML::Node recent_projects = root["recent_projects"];
@@ -205,6 +212,8 @@ bool save_editor_settings(
         viewport["camera_position"] = write_vec3(settings.camera_position);
         viewport["yaw_degrees"] = settings.camera_yaw_degrees;
         viewport["pitch_degrees"] = settings.camera_pitch_degrees;
+        viewport["camera_move_speed"] = settings.camera_move_speed;
+        viewport["show_grid"] = settings.show_viewport_grid;
         root["viewport"] = viewport;
 
         YAML::Node recent_projects(YAML::NodeType::Sequence);

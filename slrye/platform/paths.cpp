@@ -37,6 +37,11 @@ std::filesystem::path plugins_directory(const std::filesystem::path& executable_
     return executable_path.parent_path() / "plugins";
 }
 
+std::filesystem::path assets_directory(const std::filesystem::path& executable_path)
+{
+    return executable_path.parent_path() / "assets";
+}
+
 std::filesystem::path user_config_directory()
 {
     std::filesystem::path root = environment_path("LOCALAPPDATA");

@@ -33,6 +33,16 @@ TEST_CASE("Plugins directory is a sibling of the executable")
     CHECK(plugins.filename() == std::filesystem::path("plugins"));
 }
 
+TEST_CASE("Assets directory is a sibling of the executable")
+{
+    const std::filesystem::path executable = std::filesystem::path("install") / "bin" / "slrye.exe";
+
+    const std::filesystem::path assets = slrye::platform::assets_directory(executable);
+
+    CHECK(assets.parent_path() == executable.parent_path());
+    CHECK(assets.filename() == std::filesystem::path("assets"));
+}
+
 TEST_CASE("User configuration is stored below a Slrye directory")
 {
     const std::filesystem::path directory = slrye::platform::user_config_directory();

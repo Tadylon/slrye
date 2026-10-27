@@ -9,6 +9,7 @@
 #include <utility>
 
 #include <core/vulkan_backend.h>
+#include <domain/camera.h>
 #include <domain/scene.h>
 #include <platform/paths.h>
 #include <services/project/project_file.h>
@@ -62,6 +63,22 @@ int Application::run()
     ui_ = std::make_unique<EditorUI>();
     ui_->initialize();
     ui_->set_theme(settings_.theme);
+    ui_->set_viewport_camera_state(
+        settings_.camera_position,
+        settings_.camera_yaw_degrees,
+        settings_.camera_pitch_degrees);
+    ui_->set_viewport_camera_speed(settings_.camera_move_speed);
+    ui_->set_viewport_grid_visible(settings_.show_viewport_grid);
+
+    std::string viewport_error;
+    if (!ui_->initialize_viewport(
+            backend_->context(),
+            platform::assets_directory(launch_options_.executable_path) / "shaders",
+            *active_scene_,
+            &viewport_error))
+    {
+        fprintf(stderr, "Viewport warning: %s\n", viewport_error.c_str());
+    }
 
     while (!backend_->should_close())
     {
@@ -75,6 +92,8 @@ int Application::run()
     }
 
     save_editor_preferences();
+    ui_->shutdown();
+    ui_.reset();
     plugin_manager_.shutdown();
     backend_->shutdown();
     return 0;
@@ -140,7 +159,7 @@ bool Application::load_startup_project(std::string& error)
 
     active_project_path_ = project_path;
     active_scene_ = std::move(scene);
-    recent_projects_.add(active_project_path_);
+    (void)recent_projects_.add(active_project_path_);
     settings_.recent_projects = recent_projects_.entries();
     fprintf(stdout, "[project] Opened %s\n", project_path.string().c_str());
     return true;
@@ -150,7 +169,13 @@ bool Application::save_editor_preferences()
 {
     if (ui_ != nullptr)
     {
+        const PerspectiveCamera& camera = ui_->viewport_camera();
         settings_.theme = ui_->theme();
+        settings_.camera_position = camera.position();
+        settings_.camera_yaw_degrees = camera.yaw_degrees();
+        settings_.camera_pitch_degrees = camera.pitch_degrees();
+        settings_.camera_move_speed = ui_->viewport_camera_speed();
+        settings_.show_viewport_grid = ui_->is_viewport_grid_visible();
     }
     settings_.recent_projects = recent_projects_.entries();
 

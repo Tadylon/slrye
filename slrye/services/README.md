@@ -6,3 +6,5 @@ services/            文件、配置、日志、后台任务
 - `project/`：`.slproj` 工程文件及最近工程列表。
 - `serialization/`：`.slscene` 场景 YAML 编解码。
 - `settings/`：编辑器主题、视口状态和最近工程持久化模型。
+- `rendering/`：视口场景代理几何与 Vulkan 离屏渲染。
+- `picking/`：基于相机射线和 Collider 的实体选择。

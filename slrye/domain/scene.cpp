@@ -159,6 +159,11 @@ Entity Scene::find(EntityId id)
     return Entity(this, &registry_, handle, id);
 }
 
+entt::entity Scene::entity_handle(EntityId id) const noexcept
+{
+    return handle_for(id);
+}
+
 bool Scene::contains(EntityId id) const noexcept
 {
     if (!id.is_valid())
@@ -290,9 +295,15 @@ bool Scene::is_dirty() const noexcept
     return dirty_;
 }
 
+std::uint64_t Scene::revision() const noexcept
+{
+    return revision_;
+}
+
 void Scene::mark_dirty() noexcept
 {
     dirty_ = true;
+    ++revision_;
 }
 
 void Scene::clear_dirty() noexcept

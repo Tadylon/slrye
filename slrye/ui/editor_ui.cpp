@@ -29,7 +29,22 @@ ImVec4 EditorUI::render(ImGuiIO& io)
 {
     draw_workspace();
     draw_about_window();
+    viewport_.render(io);
     return slrye::render(io, view_state_);
+}
+
+bool EditorUI::initialize_viewport(
+    const VulkanContext& context,
+    const std::filesystem::path& shader_directory,
+    Scene& scene,
+    std::string* error)
+{
+    return viewport_.initialize(context, shader_directory, scene, error);
+}
+
+void EditorUI::shutdown()
+{
+    viewport_.shutdown();
 }
 
 void EditorUI::set_theme(EditorTheme theme)
@@ -41,6 +56,44 @@ void EditorUI::set_theme(EditorTheme theme)
 EditorTheme EditorUI::theme() const noexcept
 {
     return theme_;
+}
+
+void EditorUI::set_viewport_camera_state(
+    const glm::vec3& position,
+    float yaw_degrees,
+    float pitch_degrees) noexcept
+{
+    viewport_.set_camera_state(position, yaw_degrees, pitch_degrees);
+}
+
+void EditorUI::set_viewport_camera_speed(float speed) noexcept
+{
+    viewport_.set_camera_speed(speed);
+}
+
+void EditorUI::set_viewport_grid_visible(bool visible) noexcept
+{
+    viewport_.set_grid_visible(visible);
+}
+
+const PerspectiveCamera& EditorUI::viewport_camera() const noexcept
+{
+    return viewport_.camera();
+}
+
+std::optional<EntityId> EditorUI::selected_entity() const noexcept
+{
+    return viewport_.selected_entity();
+}
+
+float EditorUI::viewport_camera_speed() const noexcept
+{
+    return viewport_.camera_speed();
+}
+
+bool EditorUI::is_viewport_grid_visible() const noexcept
+{
+    return viewport_.is_grid_visible();
 }
 
 void EditorUI::draw_menu_bar()
@@ -87,6 +140,10 @@ void EditorUI::draw_menu_bar()
         }
 
         ImGui::Separator();
+        if (ImGui::MenuItem("Viewport", nullptr, viewport_.is_visible()))
+        {
+            viewport_.set_visible(!viewport_.is_visible());
+        }
         ImGui::MenuItem("Editor Preview", nullptr, &view_state_.show_demo_window);
         ImGui::EndMenu();
     }
@@ -140,6 +197,7 @@ void EditorUI::draw_workspace()
         ImGui::DockBuilderRemoveNode(dockspace_id);
         ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspace_id, dockspace_size);
+        ImGui::DockBuilderDockWindow("Viewport", dockspace_id);
         ImGui::DockBuilderDockWindow("SLRYE", dockspace_id);
         ImGui::DockBuilderFinish(dockspace_id);
     }

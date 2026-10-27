@@ -333,7 +333,7 @@ bool SceneSerializer::save(
         YAML::Node entities(YAML::NodeType::Sequence);
         for (EntityId id : scene.entities())
         {
-            const entt::entity handle = scene.handle_for(id);
+            const entt::entity handle = scene.entity_handle(id);
             YAML::Node entity;
             entity["id"] = id.value();
             write_entity_components(entity, scene, id, handle);

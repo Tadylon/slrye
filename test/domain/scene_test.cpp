@@ -131,13 +131,17 @@ TEST_CASE("Scene tracks dirty state for persistent changes")
 {
     slrye::Scene scene("Untitled");
     CHECK_FALSE(scene.is_dirty());
+    const std::uint64_t initial_revision = scene.revision();
 
     slrye::Entity entity = scene.create_entity("Entity");
     CHECK(scene.is_dirty());
+    CHECK(scene.revision() > initial_revision);
     scene.clear_dirty();
+    const std::uint64_t saved_revision = scene.revision();
 
     entity.set_name("Renamed Entity");
     CHECK(scene.is_dirty());
+    CHECK(scene.revision() > saved_revision);
     scene.clear_dirty();
 
     entity.add<slrye::LightComponent>();

@@ -44,6 +44,7 @@ TEST_CASE("Editor view submits a non-empty ImGui frame")
     io.DisplaySize = ImVec2(1280.0f, 720.0f);
     io.DeltaTime = 1.0f / 60.0f;
     slrye::EditorViewState state;
+    state.show_demo_window = true;
 
     ImGui::NewFrame();
     const ImVec4 clear_color = slrye::render(io, state);

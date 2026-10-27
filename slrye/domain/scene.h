@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <random>
 #include <string>
@@ -14,8 +15,6 @@
 
 namespace slrye
 {
-
-class SceneSerializer;
 
 class Scene
 {
@@ -35,6 +34,7 @@ public:
     bool destroy_entity(EntityId id);
 
     [[nodiscard]] Entity find(EntityId id);
+    [[nodiscard]] entt::entity entity_handle(EntityId id) const noexcept;
     [[nodiscard]] bool contains(EntityId id) const noexcept;
     [[nodiscard]] std::size_t entity_count() const noexcept;
     [[nodiscard]] const std::vector<EntityId>& entities() const noexcept;
@@ -46,6 +46,7 @@ public:
     [[nodiscard]] std::vector<EntityId> children(EntityId id) const;
 
     [[nodiscard]] bool is_dirty() const noexcept;
+    [[nodiscard]] std::uint64_t revision() const noexcept;
     void mark_dirty() noexcept;
     void clear_dirty() noexcept;
 
@@ -53,8 +54,6 @@ public:
     [[nodiscard]] const entt::registry& registry() const noexcept;
 
 private:
-    friend class SceneSerializer;
-
     [[nodiscard]] EntityId generate_id();
     [[nodiscard]] entt::entity handle_for(EntityId id) const noexcept;
 
@@ -64,6 +63,7 @@ private:
     std::vector<EntityId> entity_order_;
     std::mt19937_64 id_generator_;
     bool dirty_ = false;
+    std::uint64_t revision_ = 0;
 };
 
 }

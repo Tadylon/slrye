@@ -30,6 +30,8 @@ struct EditorSettings
     glm::vec3 camera_position{0.0f, 1.5f, 6.0f};
     float camera_yaw_degrees = 0.0f;
     float camera_pitch_degrees = 0.0f;
+    float camera_move_speed = 6.0f;
+    bool show_viewport_grid = true;
     std::vector<std::filesystem::path> recent_projects;
 };
 

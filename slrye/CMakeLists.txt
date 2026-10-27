@@ -8,15 +8,25 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 
-file(GLOB_RECURSE SLRYE_SOURCES CONFIGURE_DEPENDS *.cpp *.cc *.c)
-file(GLOB_RECURSE SLRYE_HEADERS CONFIGURE_DEPENDS *.h *.hpp)
-
-add_executable(slrye
-    ${SLRYE_SOURCES}
-    ${SLRYE_HEADERS}
+set(SLRYE_RUNTIME_SOURCES
+    app/application.cpp
+    app/launch_options.cpp
+    core/imgui_backend.cpp
+    core/vulkan_backend.cpp
+    platform/paths.cpp
+    services/plugin/plugin_manager.cpp
+    services/plugin/plugin_manifest.cpp
+    ui/editor_ui.cpp
+    ui/styles/spectrum.cpp
+    ui/styles/style.cpp
+    views/view.cpp
 )
 
-target_link_libraries(slrye PRIVATE
+add_library(slrye_runtime STATIC
+    ${SLRYE_RUNTIME_SOURCES}
+)
+
+target_link_libraries(slrye_runtime PUBLIC
     Vulkan::Vulkan
     glfw
     imgui::imgui
@@ -25,10 +35,13 @@ target_link_libraries(slrye PRIVATE
     yaml-cpp::yaml-cpp
 )
 
-target_include_directories(slrye
+target_include_directories(slrye_runtime
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+add_executable(slrye app/main.cpp)
+target_link_libraries(slrye PRIVATE slrye_runtime)
 
 if(WIN32)
     if(NOT SLRYE_ENABLE_CONSOLE)

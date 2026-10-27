@@ -27,7 +27,7 @@ void EditorUI::initialize()
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
-    io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\Arial.ttf");
+    io.Fonts->AddFontDefault();
 }
 
 ImVec4 EditorUI::render(ImGuiIO& io) const

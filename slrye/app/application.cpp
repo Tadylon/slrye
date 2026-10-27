@@ -4,13 +4,14 @@
 #include <string>
 
 #include <core/vulkan_backend.h>
+#include <platform/paths.h>
 #include <ui/editor_ui.h>
 
 namespace slrye
 {
 
 Application::Application(int argc, char** argv)
-    : executable_path_(resolve_executable_path(argc, argv)),
+    : launch_options_(parse_launch_options(argc, argv)),
       plugin_manager_([](const std::string& message)
       {
           fprintf(stderr, "[plugin] %s\n", message.c_str());
@@ -22,13 +23,19 @@ Application::~Application() = default;
 
 int Application::run()
 {
+    if (!launch_options_.is_valid())
+    {
+        fprintf(stderr, "Startup error: %s\n", launch_options_.error.c_str());
+        return 2;
+    }
+
     backend_ = std::make_unique<VulkanBackend>();
     if (!backend_->initialize("Slrye", 1280, 800))
     {
         return 1;
     }
 
-    plugin_manager_.load_all(executable_path_.parent_path() / "plugins");
+    plugin_manager_.load_all(platform::plugins_directory(launch_options_.executable_path));
 
     ui_ = std::make_unique<EditorUI>();
     ui_->initialize();
@@ -47,16 +54,6 @@ int Application::run()
     plugin_manager_.shutdown();
     backend_->shutdown();
     return 0;
-}
-
-std::filesystem::path Application::resolve_executable_path(int argc, char** argv)
-{
-    if (argc > 0 && argv != nullptr && argv[0] != nullptr)
-    {
-        return std::filesystem::absolute(argv[0]);
-    }
-
-    return std::filesystem::current_path() / "slrye.exe";
 }
 
 }

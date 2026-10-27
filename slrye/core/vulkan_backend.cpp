@@ -16,6 +16,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_vulkan.h"
+#include <core/imgui_backend.h>
 #include <core/vulkan_backend.h>
 #include <stdio.h>          // printf, fprintf
 #include <stdlib.h>         // abort
@@ -415,10 +416,6 @@ bool VulkanBackend::initialize(const char* title, int width, int height)
     ImGui_ImplVulkanH_Window* window_data = &g_MainWindowData;
     SetupVulkanWindow(window_data, surface, framebuffer_width, framebuffer_height);
 
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-
-    ImGui_ImplGlfw_InitForVulkan(window, true);
     ImGui_ImplVulkan_InitInfo init_info = {};
     init_info.Instance = g_Instance;
     init_info.PhysicalDevice = g_PhysicalDevice;
@@ -434,9 +431,15 @@ bool VulkanBackend::initialize(const char* title, int width, int height)
     init_info.PipelineInfoMain.Subpass = 0;
     init_info.PipelineInfoMain.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     init_info.CheckVkResultFn = check_vk_result;
-    ImGui_ImplVulkan_Init(&init_info);
 
     initialized_ = true;
+    imgui_backend_ = std::make_unique<ImGuiBackend>();
+    if (!imgui_backend_->initialize(window, init_info))
+    {
+        shutdown();
+        return false;
+    }
+
     return true;
 }
 
@@ -477,17 +480,12 @@ bool VulkanBackend::begin_frame()
         return false;
     }
 
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-    return true;
+    return imgui_backend_ != nullptr && imgui_backend_->begin_frame();
 }
 
 void VulkanBackend::render(ImVec4 clear_color)
 {
     ImGui_ImplVulkanH_Window* window_data = &g_MainWindowData;
-    ImGuiIO& io = ImGui::GetIO();
-
     ImGui::Render();
     ImDrawData* draw_data = ImGui::GetDrawData();
     const bool main_is_minimized =
@@ -503,10 +501,9 @@ void VulkanBackend::render(ImVec4 clear_color)
         FrameRender(window_data, draw_data);
     }
 
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+    if (imgui_backend_ != nullptr)
     {
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
+        imgui_backend_->render_platform_windows();
     }
 
     if (!main_is_minimized)
@@ -525,9 +522,11 @@ void VulkanBackend::shutdown()
     const VkResult wait_result = vkDeviceWaitIdle(g_Device);
     check_vk_result(wait_result);
 
-    ImGui_ImplVulkan_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    if (imgui_backend_ != nullptr)
+    {
+        imgui_backend_->shutdown();
+        imgui_backend_.reset();
+    }
 
     CleanupVulkanWindow(&g_MainWindowData);
     CleanupVulkan();
@@ -540,7 +539,7 @@ void VulkanBackend::shutdown()
 
 ImGuiIO& VulkanBackend::io() const
 {
-    return ImGui::GetIO();
+    return imgui_backend_->io();
 }
 
 }

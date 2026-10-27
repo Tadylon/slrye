@@ -1,8 +1,8 @@
 #pragma once
 
-#include <filesystem>
 #include <memory>
 
+#include <app/launch_options.h>
 #include <services/plugin/plugin_manager.h>
 
 namespace slrye
@@ -25,9 +25,7 @@ public:
     int run();
 
 private:
-    static std::filesystem::path resolve_executable_path(int argc, char** argv);
-
-    std::filesystem::path executable_path_;
+    ApplicationLaunchOptions launch_options_;
     PluginManager plugin_manager_;
     std::unique_ptr<VulkanBackend> backend_;
     std::unique_ptr<EditorUI> ui_;

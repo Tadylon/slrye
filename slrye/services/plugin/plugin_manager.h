@@ -8,20 +8,10 @@
 #include <vector>
 
 #include <services/plugin/plugin_api.h>
+#include <services/plugin/plugin_manifest.h>
 
 namespace slrye
 {
-
-struct PluginManifest
-{
-    std::string id;
-    std::string name;
-    std::string version;
-    std::string author;
-    std::string description;
-    std::string library;
-    bool enabled = true;
-};
 
 struct LoadedPlugin
 {

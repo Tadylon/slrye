@@ -1,9 +1,13 @@
 #pragma once
 
+#include <memory>
+
 #include <imgui.h>
 
 namespace slrye
 {
+
+class ImGuiBackend;
 
 class VulkanBackend
 {
@@ -25,6 +29,7 @@ public:
     ImGuiIO& io() const;
 
 private:
+    std::unique_ptr<ImGuiBackend> imgui_backend_;
     bool initialized_ = false;
 };
 

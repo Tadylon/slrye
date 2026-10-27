@@ -8,8 +8,6 @@
 #include <utility>
 #include <vector>
 
-#include <yaml-cpp/yaml.h>
-
 #if defined(_WIN32)
 #include <windows.h>
 #else
@@ -120,58 +118,6 @@ struct NativePlugin
     bool initialized = false;
 };
 
-std::string read_yaml_string(const YAML::Node& node, const char* key)
-{
-    const YAML::Node value = node[key];
-    if (!value)
-    {
-        return {};
-    }
-
-    return value.as<std::string>();
-}
-
-bool read_plugin_manifest(const std::filesystem::path& path, PluginManifest& manifest)
-{
-    try
-    {
-        const YAML::Node root = YAML::LoadFile(path.string());
-        if (!root)
-        {
-            return false;
-        }
-
-        manifest.id = read_yaml_string(root, "id");
-        manifest.name = read_yaml_string(root, "name");
-        manifest.version = read_yaml_string(root, "version");
-        manifest.author = read_yaml_string(root, "author");
-        manifest.description = read_yaml_string(root, "description");
-        manifest.library = read_yaml_string(root, "library");
-
-        const YAML::Node enabled = root["enabled"];
-        if (enabled)
-        {
-            manifest.enabled = enabled.as<bool>();
-        }
-
-        if (manifest.id.empty())
-        {
-            return false;
-        }
-
-        if (manifest.library.empty())
-        {
-            manifest.library = manifest.id;
-        }
-
-        return true;
-    }
-    catch (const YAML::Exception&)
-    {
-        return false;
-    }
-}
-
 }
 
 class PluginManager::Impl
@@ -236,16 +182,17 @@ public:
     bool load_plugin(const std::filesystem::path& plugin_directory)
     {
         const std::filesystem::path manifest_path = plugin_directory / "plugin.yaml";
-        PluginManifest manifest;
-        if (!read_plugin_manifest(manifest_path, manifest))
+        std::string manifest_error;
+        const std::optional<PluginManifest> manifest = load_plugin_manifest(manifest_path, &manifest_error);
+        if (!manifest.has_value())
         {
-            log("Ignoring plugin without a valid plugin.yaml: " + plugin_directory.string());
+            log("Ignoring plugin without a valid plugin.yaml: " + plugin_directory.string() + " (" + manifest_error + ")");
             return false;
         }
 
-        if (!manifest.enabled)
+        if (!manifest->enabled)
         {
-            log("Skipping disabled plugin: " + manifest.id);
+            log("Skipping disabled plugin: " + manifest->id);
             return false;
         }
 
@@ -254,16 +201,16 @@ public:
             loaded_.end(),
             [&manifest](const LoadedPlugin& loaded)
             {
-                return loaded.manifest.id == manifest.id;
+                return loaded.manifest.id == manifest->id;
             });
 
         if (duplicate != loaded_.end())
         {
-            log("Duplicate plugin id ignored: " + manifest.id);
+            log("Duplicate plugin id ignored: " + manifest->id);
             return false;
         }
 
-        std::filesystem::path library_name = manifest.library;
+        std::filesystem::path library_name = manifest->library;
         if (!library_name.has_extension())
         {
             library_name += kPluginLibrarySuffix;
@@ -283,7 +230,7 @@ public:
 
         if (native->get_info == nullptr || native->initialize == nullptr || native->shutdown == nullptr)
         {
-            log("Plugin is missing required exports: " + manifest.id);
+            log("Plugin is missing required exports: " + manifest->id);
             return false;
         }
 
@@ -292,13 +239,13 @@ public:
         const SlryePluginResult info_result = native->get_info(&info);
         if (info_result != SLRYE_PLUGIN_OK)
         {
-            log("Plugin rejected get_info: " + manifest.id);
+            log("Plugin rejected get_info: " + manifest->id);
             return false;
         }
 
         if (info.struct_size < sizeof(SlryePluginInfoV1) || info.api_version > SLRYE_PLUGIN_API_VERSION)
         {
-            log("Plugin API version is not supported: " + manifest.id);
+            log("Plugin API version is not supported: " + manifest->id);
             return false;
         }
 
@@ -311,12 +258,12 @@ public:
         const SlryePluginResult initialize_result = native->initialize(&host_api);
         if (initialize_result != SLRYE_PLUGIN_OK)
         {
-            log("Plugin initialization failed: " + manifest.id);
+            log("Plugin initialization failed: " + manifest->id);
             return false;
         }
 
         native->initialized = true;
-        native->metadata.manifest = manifest;
+        native->metadata.manifest = *manifest;
         native->metadata.directory = plugin_directory;
         native->metadata.library_path = plugin_directory / library_name;
 
@@ -331,7 +278,7 @@ public:
 
         loaded_.push_back(native->metadata);
         plugins_.push_back(std::move(native));
-        log("Loaded plugin: " + manifest.id + " (" + manifest.name + ")");
+        log("Loaded plugin: " + manifest->id + " (" + manifest->name + ")");
         return true;
     }
 

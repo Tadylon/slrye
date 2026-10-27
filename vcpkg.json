@@ -2,6 +2,7 @@
   "name": "slrye",
   "version": "0.1.0",
   "dependencies": [
+    "catch2",
     "glfw3",
     "glm",
     "entt",

@@ -15,9 +15,15 @@ set(SLRYE_RUNTIME_SOURCES
     core/imgui_backend.cpp
     core/vulkan_backend.cpp
     domain/scene.cpp
+    platform/file_io.cpp
+    platform/path_encoding.cpp
     platform/paths.cpp
     services/plugin/plugin_manager.cpp
     services/plugin/plugin_manifest.cpp
+    services/project/project_file.cpp
+    services/project/recent_projects.cpp
+    services/serialization/scene_serializer.cpp
+    services/settings/editor_settings.cpp
     ui/editor_ui.cpp
     ui/theme_manager.cpp
     ui/styles/spectrum.cpp

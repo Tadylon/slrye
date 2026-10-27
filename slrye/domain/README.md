@@ -9,4 +9,4 @@
 - `components.h`：Name、Transform、Hierarchy、Camera、Light 和 Collider 数据组件。
 - `entity_id.h`：稳定实体标识。
 
-后续的 CommandStack、序列化模型和运行时系统继续放在这一层。
+序列化由 `services/serialization` 负责，领域层仅保留稳定 ID 和组件数据；后续的 CommandStack 与运行时系统继续放在这一层。

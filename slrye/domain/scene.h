@@ -15,6 +15,8 @@
 namespace slrye
 {
 
+class SceneSerializer;
+
 class Scene
 {
 public:
@@ -51,6 +53,8 @@ public:
     [[nodiscard]] const entt::registry& registry() const noexcept;
 
 private:
+    friend class SceneSerializer;
+
     [[nodiscard]] EntityId generate_id();
     [[nodiscard]] entt::entity handle_for(EntityId id) const noexcept;
 

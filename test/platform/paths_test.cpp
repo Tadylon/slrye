@@ -1,4 +1,5 @@
 #include <platform/paths.h>
+#include <platform/path_encoding.h>
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -30,4 +31,20 @@ TEST_CASE("Plugins directory is a sibling of the executable")
 
     CHECK(plugins.parent_path() == executable.parent_path());
     CHECK(plugins.filename() == std::filesystem::path("plugins"));
+}
+
+TEST_CASE("User configuration is stored below a Slrye directory")
+{
+    const std::filesystem::path directory = slrye::platform::user_config_directory();
+
+    CHECK(directory.is_absolute());
+    CHECK(directory.filename() == std::filesystem::path("Slrye"));
+}
+
+TEST_CASE("Filesystem paths round-trip as UTF-8")
+{
+    const std::string utf8_path = "levels/\xE4\xB8\xBB\xE5\x9C\xBA\xE6\x99\xAF.slscene";
+    const std::filesystem::path path = slrye::platform::path_from_utf8(utf8_path);
+
+    CHECK(slrye::platform::path_to_utf8(path) == utf8_path);
 }

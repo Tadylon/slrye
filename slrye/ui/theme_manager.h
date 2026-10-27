@@ -1,14 +1,9 @@
 #pragma once
 
+#include <services/settings/editor_settings.h>
+
 namespace slrye
 {
-
-enum class EditorTheme
-{
-    SpectrumLight,
-    SpectrumDark,
-    EnemyMouse
-};
 
 class ThemeManager
 {

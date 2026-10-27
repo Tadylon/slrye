@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(slrye CXX)
 
 find_package(glfw3 CONFIG REQUIRED)
+find_package(glm CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
@@ -13,6 +14,7 @@ set(SLRYE_RUNTIME_SOURCES
     app/launch_options.cpp
     core/imgui_backend.cpp
     core/vulkan_backend.cpp
+    domain/scene.cpp
     platform/paths.cpp
     services/plugin/plugin_manager.cpp
     services/plugin/plugin_manifest.cpp
@@ -30,6 +32,7 @@ add_library(slrye_runtime STATIC
 target_link_libraries(slrye_runtime PUBLIC
     Vulkan::Vulkan
     glfw
+    glm::glm
     imgui::imgui
     EnTT::EnTT
     spdlog::spdlog

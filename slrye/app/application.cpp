@@ -4,6 +4,7 @@
 #include <string>
 
 #include <core/vulkan_backend.h>
+#include <domain/scene.h>
 #include <platform/paths.h>
 #include <ui/editor_ui.h>
 
@@ -12,6 +13,7 @@ namespace slrye
 
 Application::Application(int argc, char** argv)
     : launch_options_(parse_launch_options(argc, argv)),
+      active_scene_(std::make_unique<Scene>("Untitled")),
       plugin_manager_([](const std::string& message)
       {
           fprintf(stderr, "[plugin] %s\n", message.c_str());

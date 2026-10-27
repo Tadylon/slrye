@@ -10,6 +10,7 @@ namespace slrye
 
 class VulkanBackend;
 class EditorUI;
+class Scene;
 
 class Application
 {
@@ -26,6 +27,7 @@ public:
 
 private:
     ApplicationLaunchOptions launch_options_;
+    std::unique_ptr<Scene> active_scene_;
     PluginManager plugin_manager_;
     std::unique_ptr<VulkanBackend> backend_;
     std::unique_ptr<EditorUI> ui_;

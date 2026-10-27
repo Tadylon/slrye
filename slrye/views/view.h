@@ -1,10 +1,16 @@
 #pragma once
-#include <imgui.h>
 
+#include <imgui.h>
 
 namespace slrye
 {
-ImVec4 render(ImGuiIO& io);
 
+struct EditorViewState
+{
+    bool show_demo_window = true;
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.0f);
+};
+
+ImVec4 render(ImGuiIO& io, EditorViewState& state);
 
 }

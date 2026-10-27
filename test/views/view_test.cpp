@@ -43,9 +43,10 @@ TEST_CASE("Editor view submits a non-empty ImGui frame")
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2(1280.0f, 720.0f);
     io.DeltaTime = 1.0f / 60.0f;
+    slrye::EditorViewState state;
 
     ImGui::NewFrame();
-    const ImVec4 clear_color = slrye::render(io);
+    const ImVec4 clear_color = slrye::render(io, state);
 
     // ⭐ 诊断代码
     auto* win = ImGui::FindWindowByName("SLRYE");
@@ -67,4 +68,5 @@ TEST_CASE("Editor view submits a non-empty ImGui frame")
     REQUIRE(ImGui::GetDrawData() != nullptr);
     CHECK(ImGui::GetDrawData()->Valid);
     // CHECK(ImGui::GetDrawData()->CmdListsCount > 0);
+    // CHECK(ImGui::GetDrawData()->CmdListsCount == 0);
 }

@@ -17,6 +17,7 @@ set(SLRYE_RUNTIME_SOURCES
     services/plugin/plugin_manager.cpp
     services/plugin/plugin_manifest.cpp
     ui/editor_ui.cpp
+    ui/theme_manager.cpp
     ui/styles/spectrum.cpp
     ui/styles/style.cpp
     views/view.cpp

@@ -1,47 +1,32 @@
-#pragma once
-#include <imgui.h>
-
 #include <views/view.h>
 
-namespace slrye{
-
-
-ImVec4 render(ImGuiIO& io)
+namespace slrye
 {
-    // Our state
-    static bool show_window = true;
-    // static bool show_another_window = false;
-    static ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    // ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-    
-    // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-    if (show_window)
-    // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+
+ImVec4 render(ImGuiIO& io, EditorViewState& state)
 {
-        static float f = 0.0f;
+    if (state.show_demo_window)
+    {
+        static float value = 0.0f;
         static int counter = 0;
-        // ③ 钉死窗口位置和尺寸 —— 这是 CmdListsCount 为 0 最可能的解
-        // ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
-        // ImGui::SetNextWindowSize(ImVec2(600.0f, 400.0f), ImGuiCond_Always);
-        
-        ImGui::Begin("SLRYE",&show_window);                          // Create a window called "Hello, world!" and append into it.
-        
-        ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        // ImGui::Checkbox("Demo Window", &show_window);      // Edit bools storing our window open/close state
-        
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-        
-        // ImGui::SameLine();
-        if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+
+        ImGui::Begin("SLRYE", &state.show_demo_window);
+        ImGui::Text("Editor workspace preview");
+        ImGui::SliderFloat("Value", &value, 0.0f, 1.0f);
+        ImGui::ColorEdit3("Clear color", &state.clear_color.x);
+
+        if (ImGui::Button("Increment"))
+        {
             counter++;
+        }
         ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
-        
+        ImGui::Text("Counter = %d", counter);
+
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::End();
     }
-    return clear_color;
+
+    return state.clear_color;
 }
 
 }

@@ -132,7 +132,10 @@ plugins/
 使用的第三方依赖
 ```json
 {
+  "name": "slrye",
+  "version": "0.1.0",
   "dependencies": [
+    "catch2",
     "glfw3",
     "glm",
     "entt",
@@ -140,10 +143,15 @@ plugins/
     "yaml-cpp",
     {
       "name": "imgui",
-      "features": ["docking-experimental", "glfw-binding", "vulkan-binding"]
+      "features": [
+        "glfw-binding",
+        "vulkan-binding",
+        "docking-experimental"
+      ]
     }
   ]
 }
+
 ```
 
 

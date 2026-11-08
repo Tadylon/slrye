@@ -7,11 +7,11 @@ TEST_CASE("ImGui backend rejects initialization without a window")
 {
     slrye::ImGuiBackend& backend = slrye::ImGuiBackend::instance();
     slrye::ImGuiBackend& same_backend = slrye::ImGuiBackend::instance();
-    ImGui_ImplVulkan_InitInfo init_info{};
+    slrye::VulkanContext context;
 
     CHECK(&backend == &same_backend);
     CHECK_FALSE(backend.is_initialized());
-    CHECK_FALSE(backend.initialize(nullptr, init_info));
+    CHECK_FALSE(backend.initialize(nullptr, context));
     CHECK_FALSE(backend.begin_frame());
     CHECK_FALSE(backend.is_initialized());
 }
@@ -21,7 +21,7 @@ TEST_CASE("ImGui backend can be shut down repeatedly before successful initializ
     slrye::ImGuiBackend& backend = slrye::ImGuiBackend::instance();
 
     backend.shutdown();
-    backend.render_platform_windows();
+    backend.render(ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
     backend.shutdown();
 
     CHECK_FALSE(backend.is_initialized());

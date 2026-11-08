@@ -18,8 +18,9 @@ EditorUI::~EditorUI()
     shutdown();
 }
 
-void EditorUI::initialize()
+void EditorUI::initialize(EditorSettings& settings)
 {
+    settings_ = &settings;
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
@@ -33,7 +34,7 @@ void EditorUI::initialize()
         io.Fonts->AddFontDefault();
     }
 
-    set_theme(theme_);
+    theme_manager_.apply(settings.theme);
 }
 
 ImVec4 EditorUI::render()
@@ -56,17 +57,21 @@ bool EditorUI::initialize_viewport(
 void EditorUI::shutdown()
 {
     viewport_.shutdown();
+    settings_ = nullptr;
 }
 
 void EditorUI::set_theme(EditorTheme theme)
 {
-    theme_ = theme;
-    theme_manager_.apply(theme_);
+    if (settings_ != nullptr)
+    {
+        settings_->theme = theme;
+    }
+    theme_manager_.apply(theme);
 }
 
 EditorTheme EditorUI::theme() const noexcept
 {
-    return theme_;
+    return settings_ != nullptr ? settings_->theme : EditorTheme::SpectrumLight;
 }
 
 void EditorUI::set_viewport_camera_state(
@@ -133,17 +138,27 @@ void EditorUI::draw_menu_bar()
 
     if (ImGui::BeginMenu("View"))
     {
+        const EditorTheme current_theme = theme();
         if (ImGui::BeginMenu("Theme"))
         {
-            if (ImGui::MenuItem("Spectrum Light", nullptr, theme_ == EditorTheme::SpectrumLight))
+            if (ImGui::MenuItem(
+                    "Spectrum Light",
+                    nullptr,
+                    current_theme == EditorTheme::SpectrumLight))
             {
                 set_theme(EditorTheme::SpectrumLight);
             }
-            if (ImGui::MenuItem("Spectrum Dark", nullptr, theme_ == EditorTheme::SpectrumDark))
+            if (ImGui::MenuItem(
+                    "Spectrum Dark",
+                    nullptr,
+                    current_theme == EditorTheme::SpectrumDark))
             {
                 set_theme(EditorTheme::SpectrumDark);
             }
-            if (ImGui::MenuItem("EnemyMouse", nullptr, theme_ == EditorTheme::EnemyMouse))
+            if (ImGui::MenuItem(
+                    "EnemyMouse",
+                    nullptr,
+                    current_theme == EditorTheme::EnemyMouse))
             {
                 set_theme(EditorTheme::EnemyMouse);
             }
@@ -232,7 +247,7 @@ void EditorUI::draw_status_bar(float height)
     ImGui::SameLine();
     ImGui::TextDisabled(
         "| %s | %.1f FPS",
-        theme_manager_.display_name(theme_),
+        theme_manager_.display_name(theme()),
         ImGui::GetIO().Framerate);
 
     ImGui::EndChild();

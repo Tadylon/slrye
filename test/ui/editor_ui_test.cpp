@@ -29,11 +29,12 @@ public:
 TEST_CASE("Editor UI configures docking, keyboard navigation, and a default font")
 {
     ImGuiContextScope context;
+    slrye::EditorSettings settings;
     slrye::EditorUI& editor_ui = slrye::EditorUI::instance();
     slrye::EditorUI& same_editor_ui = slrye::EditorUI::instance();
 
     editor_ui.shutdown();
-    editor_ui.initialize();
+    editor_ui.initialize(settings);
 
     ImGuiIO& io = ImGui::GetIO();
     CHECK(&editor_ui == &same_editor_ui);
@@ -49,15 +50,17 @@ TEST_CASE("Editor UI configures docking, keyboard navigation, and a default font
 TEST_CASE("Editor UI switches themes at runtime")
 {
     ImGuiContextScope context;
+    slrye::EditorSettings settings;
     slrye::EditorUI& editor_ui = slrye::EditorUI::instance();
     editor_ui.shutdown();
-    editor_ui.initialize();
+    editor_ui.initialize(settings);
 
     const ImVec4 light_background = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
     editor_ui.set_theme(slrye::EditorTheme::EnemyMouse);
     const ImVec4 enemy_mouse_background = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
 
     CHECK(editor_ui.theme() == slrye::EditorTheme::EnemyMouse);
+    CHECK(settings.theme == slrye::EditorTheme::EnemyMouse);
     CHECK(enemy_mouse_background.x != light_background.x);
     CHECK(enemy_mouse_background.y != light_background.y);
     CHECK(enemy_mouse_background.z != light_background.z);
@@ -72,8 +75,9 @@ TEST_CASE("Editor shell submits the workspace, docking area, and status bar")
     io.DeltaTime = 1.0f / 60.0f;
 
     slrye::EditorUI& editor_ui = slrye::EditorUI::instance();
+    slrye::EditorSettings settings;
     editor_ui.shutdown();
-    editor_ui.initialize();
+    editor_ui.initialize(settings);
 
     ImGui::NewFrame();
     editor_ui.render();

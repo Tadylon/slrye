@@ -1,8 +1,8 @@
 #pragma once
 
-#include <imgui.h>
-
 #include <core/vulkan_context.h>
+
+struct GLFWwindow;
 
 namespace slrye
 {
@@ -20,10 +20,9 @@ public:
     bool initialize(const char* title, int width, int height);
     bool should_close() const;
     bool begin_frame();
-    void render(ImVec4 clear_color);
     void shutdown();
 
-    ImGuiIO& io() const;
+    [[nodiscard]] GLFWwindow* window() const noexcept;
     [[nodiscard]] const VulkanContext& context() const noexcept;
 
 private:
@@ -31,6 +30,9 @@ private:
     ~VulkanBackend();
 
     VulkanContext context_;
+    GLFWwindow* window_ = nullptr;
+    VkDebugReportCallbackEXT debug_report_ = VK_NULL_HANDLE;
+    bool glfw_initialized_ = false;
     bool initialized_ = false;
 };
 

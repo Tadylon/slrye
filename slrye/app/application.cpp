@@ -8,12 +8,14 @@
 #include <system_error>
 #include <utility>
 
+#include <core/imgui_backend.h>
 #include <core/vulkan_backend.h>
 #include <domain/camera.h>
 #include <domain/scene.h>
 #include <platform/paths.h>
 #include <services/project/project_file.h>
 #include <services/serialization/scene_serializer.h>
+#include <services/settings/editor_settings.h>
 #include <ui/editor_ui.h>
 
 namespace slrye
@@ -30,6 +32,7 @@ Application::Application(int argc, char** argv)
       active_scene_(std::make_unique<Scene>("Untitled")),
       plugin_manager_(PluginManager::instance()),
       backend_(VulkanBackend::instance()),
+      imgui_backend_(ImGuiBackend::instance()),
       ui_(EditorUI::instance())
 {
     plugin_manager_.set_logger([](const std::string& message)
@@ -66,11 +69,18 @@ int Application::run()
         return 1;
     }
 
+    if (!imgui_backend_.initialize(backend_.window(), backend_.context()))
+    {
+        fprintf(stderr, "Unable to initialize the Dear ImGui Vulkan backend\n");
+        save_editor_preferences();
+        backend_.shutdown();
+        return 1;
+    }
+
     plugin_manager_.load_all(platform::plugins_directory(launch_options_.executable_path));
 
-    ui_.initialize();
+    ui_.initialize(settings_);
     ui_initialized_ = true;
-    ui_.set_theme(settings_.theme);
     ui_.set_viewport_camera_state(
         settings_.camera_position,
         settings_.camera_yaw_degrees,
@@ -90,19 +100,20 @@ int Application::run()
 
     while (!backend_.should_close())
     {
-        if (!backend_.begin_frame())
+        if (!backend_.begin_frame() || !imgui_backend_.begin_frame())
         {
             continue;
         }
 
         const ImVec4 clear_color = ui_.render();
-        backend_.render(clear_color);
+        imgui_backend_.render(clear_color);
     }
 
     save_editor_preferences();
     ui_.shutdown();
     ui_initialized_ = false;
     plugin_manager_.shutdown();
+    imgui_backend_.shutdown();
     backend_.shutdown();
     return 0;
 }
@@ -178,7 +189,6 @@ bool Application::save_editor_preferences()
     if (ui_initialized_)
     {
         const PerspectiveCamera& camera = ui_.viewport_camera();
-        settings_.theme = ui_.theme();
         settings_.camera_position = camera.position();
         settings_.camera_yaw_degrees = camera.yaw_degrees();
         settings_.camera_pitch_degrees = camera.pitch_degrees();

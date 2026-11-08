@@ -7,6 +7,7 @@
 #include <string>
 
 #include <domain/camera.h>
+#include <domain/editor_settings.h>
 #include <domain/entity_id.h>
 #include <ui/theme_manager.h>
 #include <views/view.h>
@@ -25,7 +26,7 @@ public:
     EditorUI(EditorUI&&) = delete;
     EditorUI& operator=(EditorUI&&) = delete;
 
-    void initialize();
+    void initialize(EditorSettings& settings);
     bool initialize_viewport(
         const VulkanContext& context,
         const std::filesystem::path& shader_directory,
@@ -57,7 +58,7 @@ private:
     void draw_about_window();
 
     ThemeManager theme_manager_;
-    EditorTheme theme_ = EditorTheme::SpectrumLight;
+    EditorSettings* settings_ = nullptr;
     EditorViewState view_state_;
     Viewport viewport_;
     bool show_about_window_ = false;

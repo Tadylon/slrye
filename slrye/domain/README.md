@@ -10,5 +10,6 @@
 - `entity_id.h`：稳定实体标识。
 - `camera.h`：编辑器透视相机、视图/投影矩阵和屏幕射线。
 - `scene_transform.h`：父子实体世界矩阵计算。
+- `editor_settings.h`：编辑器主题、视口偏好和最近工程的领域模型，不负责样式应用或文件持久化。
 
 序列化由 `services/serialization` 负责，领域层仅保留稳定 ID 和组件数据；后续的 CommandStack 与运行时系统继续放在这一层。

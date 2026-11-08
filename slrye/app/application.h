@@ -7,12 +7,13 @@
 #include <app/launch_options.h>
 #include <services/project/recent_projects.h>
 #include <services/plugin/plugin_manager.h>
-#include <services/settings/editor_settings.h>
+#include <domain/editor_settings.h>
 
 namespace slrye
 {
 
 class VulkanBackend;
+class ImGuiBackend;
 class EditorUI;
 class Scene;
 
@@ -44,6 +45,7 @@ private:
     std::filesystem::path active_project_path_;
     PluginManager& plugin_manager_;
     VulkanBackend& backend_;
+    ImGuiBackend& imgui_backend_;
     EditorUI& ui_;
     bool ui_initialized_ = false;
 };

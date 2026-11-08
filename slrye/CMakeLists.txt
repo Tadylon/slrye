@@ -15,6 +15,7 @@ set(SLRYE_RUNTIME_SOURCES
     core/imgui_backend.cpp
     core/vulkan_backend.cpp
     domain/camera.cpp
+    domain/editor_settings.cpp
     domain/scene.cpp
     domain/scene_transform.cpp
     platform/file_io.cpp

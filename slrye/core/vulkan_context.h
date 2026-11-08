@@ -14,8 +14,8 @@ struct VulkanContext
     VkDevice device = VK_NULL_HANDLE;
     VkQueue graphics_queue = VK_NULL_HANDLE;
     std::uint32_t graphics_queue_family = 0;
-    VkDescriptorPool imgui_descriptor_pool = VK_NULL_HANDLE;
     VkAllocationCallbacks* allocator = nullptr;
+    VkSurfaceKHR surface = VK_NULL_HANDLE;
 
     [[nodiscard]] bool is_valid() const noexcept
     {
@@ -23,7 +23,7 @@ struct VulkanContext
             physical_device != VK_NULL_HANDLE &&
             device != VK_NULL_HANDLE &&
             graphics_queue != VK_NULL_HANDLE &&
-            imgui_descriptor_pool != VK_NULL_HANDLE;
+            surface != VK_NULL_HANDLE;
     }
 };
 

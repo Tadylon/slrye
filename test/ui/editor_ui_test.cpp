@@ -72,6 +72,9 @@ TEST_CASE("Editor shell submits the workspace, docking area, and status bar")
     editor_ui.render(io);
     ImGui::Render();
 
+    const ImGuiWindow* workspace = ImGui::FindWindowByName("##EditorWorkspace");
+    REQUIRE(workspace != nullptr);
+    CHECK((workspace->Flags & ImGuiWindowFlags_MenuBar) != 0);
     CHECK(ImGui::FindWindowByName("Viewport") != nullptr);
     REQUIRE(ImGui::GetDrawData() != nullptr);
     CHECK(ImGui::GetDrawData()->Valid);

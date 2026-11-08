@@ -26,7 +26,7 @@ public:
         const std::filesystem::path& shader_directory,
         Scene& scene,
         std::string* error = nullptr);
-    void render(ImGuiIO& io);
+    void render();
     void shutdown();
 
     void set_scene(Scene& scene) noexcept;

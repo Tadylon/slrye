@@ -87,7 +87,7 @@ int Application::run()
             continue;
         }
 
-        const ImVec4 clear_color = ui_->render(backend_->io());
+        const ImVec4 clear_color = ui_->render();
         backend_->render(clear_color);
     }
 

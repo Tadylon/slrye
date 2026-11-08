@@ -25,11 +25,11 @@ void EditorUI::initialize()
     set_theme(theme_);
 }
 
-ImVec4 EditorUI::render(ImGuiIO& io)
+ImVec4 EditorUI::render()
 {
     draw_workspace();
     draw_about_window();
-    viewport_.render(io);
+    viewport_.render();
     return slrye::render(view_state_);
 }
 
@@ -168,6 +168,7 @@ void EditorUI::draw_workspace()
     ImGui::SetNextWindowViewport(viewport->ID);
 
     constexpr ImGuiWindowFlags host_flags =
+        ImGuiWindowFlags_MenuBar |
         ImGuiWindowFlags_NoTitleBar |
         ImGuiWindowFlags_NoCollapse |
         ImGuiWindowFlags_NoResize |

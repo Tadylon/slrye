@@ -24,7 +24,7 @@ public:
         const std::filesystem::path& shader_directory,
         Scene& scene,
         std::string* error = nullptr);
-    ImVec4 render(ImGuiIO& io);
+    ImVec4 render();
     void shutdown();
     void set_theme(EditorTheme theme);
     void set_viewport_camera_state(

@@ -31,8 +31,9 @@ bool Viewport::initialize(
     return true;
 }
 
-void Viewport::render(ImGuiIO& io)
+void Viewport::render()
 {
+    auto& io = ImGui::GetIO();
     if (!visible_)
     {
         return;

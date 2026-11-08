@@ -6,7 +6,7 @@
 
 #include <app/launch_options.h>
 #include <services/project/recent_projects.h>
-#include <services/plugin/plugin_manager.h>
+// #include <services/plugin/plugin_manager.h>
 #include <domain/editor_settings.h>
 
 namespace slrye
@@ -43,7 +43,7 @@ private:
     RecentProjects recent_projects_;
     std::filesystem::path settings_path_;
     std::filesystem::path active_project_path_;
-    PluginManager& plugin_manager_;
+    // PluginManager& plugin_manager_;
     VulkanBackend& backend_;
     ImGuiBackend& imgui_backend_;
     EditorUI& ui_;

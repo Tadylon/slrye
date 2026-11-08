@@ -21,8 +21,8 @@ set(SLRYE_RUNTIME_SOURCES
     platform/file_io.cpp
     platform/path_encoding.cpp
     platform/paths.cpp
-    services/plugin/plugin_manager.cpp
-    services/plugin/plugin_manifest.cpp
+    # plugin/plugin_manager.cpp
+    # plugin/plugin_manifest.cpp
     services/project/project_file.cpp
     services/project/recent_projects.cpp
     services/picking/picking.cpp

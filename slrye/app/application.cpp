@@ -30,15 +30,15 @@ Application& Application::instance(int argc, char** argv)
 Application::Application(int argc, char** argv)
     : launch_options_(parse_launch_options(argc, argv)),
       active_scene_(std::make_unique<Scene>("Untitled")),
-      plugin_manager_(PluginManager::instance()),
+    //   plugin_manager_(PluginManager::instance()),
       backend_(VulkanBackend::instance()),
       imgui_backend_(ImGuiBackend::instance()),
       ui_(EditorUI::instance())
 {
-    plugin_manager_.set_logger([](const std::string& message)
-    {
-        fprintf(stderr, "[plugin] %s\n", message.c_str());
-    });
+    // plugin_manager_.set_logger([](const std::string& message)
+    // {
+    //     fprintf(stderr, "[plugin] %s\n", message.c_str());
+    // });
 }
 
 Application::~Application() = default;
@@ -77,7 +77,7 @@ int Application::run()
         return 1;
     }
 
-    plugin_manager_.load_all(platform::plugins_directory(launch_options_.executable_path));
+    // plugin_manager_.load_all(platform::plugins_directory(launch_options_.executable_path));
 
     ui_.initialize(settings_);
     ui_initialized_ = true;
@@ -112,7 +112,7 @@ int Application::run()
     save_editor_preferences();
     ui_.shutdown();
     ui_initialized_ = false;
-    plugin_manager_.shutdown();
+    // plugin_manager_.shutdown();
     imgui_backend_.shutdown();
     backend_.shutdown();
     return 0;

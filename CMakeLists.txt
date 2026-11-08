@@ -11,7 +11,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 include(cmake/SlryePlugin.cmake)
 
-option(SLRYE_BUILD_EXAMPLES "Build examples" OFF)
+option(SLRYE_BUILD_EXAMPLES "Build examples" ON )
 option(SLRYE_BUILD_TESTS    "Build tests"    ON )
 option(SLRYE_BUILD_TOOLS    "Build tools"    OFF)
 option(SLRYE_BUILD_PLUGINS  "Build bundled plugins" ON)

@@ -30,7 +30,7 @@ ImVec4 EditorUI::render(ImGuiIO& io)
     draw_workspace();
     draw_about_window();
     viewport_.render(io);
-    return slrye::render(io, view_state_);
+    return slrye::render(view_state_);
 }
 
 bool EditorUI::initialize_viewport(

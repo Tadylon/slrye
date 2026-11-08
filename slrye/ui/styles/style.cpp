@@ -4,7 +4,7 @@
 
 namespace slrye{
 
-ImGuiStyle& imgui_style_enemymouse()
+void imgui_style_enemymouse()
 {
 
     ImGuiStyle& style = ImGui::GetStyle();
@@ -60,10 +60,9 @@ ImGuiStyle& imgui_style_enemymouse()
     style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00f, 1.00f, 1.00f, 0.22f);
     // style.Colors[ImGuiCol_TooltipBg] = ImVec4(0.00f, 0.13f, 0.13f, 0.90f);
     // style.Colors[ImGuiCol_ModalWindowDarkening] = ImVec4(0.04f, 0.10f, 0.09f, 0.51f);
-    return style;
 }
 
-ImGuiStyle& imgui_style_spectrum()
+void imgui_style_spectrum()
 {
     using namespace ImGui;
     ImGuiStyle* style = &ImGui::GetStyle();
@@ -113,7 +112,7 @@ ImGuiStyle& imgui_style_spectrum()
     colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
     colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
     colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
-    return *style;
+
 }
 }
 

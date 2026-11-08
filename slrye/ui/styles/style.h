@@ -6,9 +6,9 @@
 
 namespace slrye{
 
-ImGuiStyle& imgui_style_enemymouse();
+void imgui_style_enemymouse();
 
-ImGuiStyle& imgui_style_spectrum();
+void imgui_style_spectrum();
 
 
 

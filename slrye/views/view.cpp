@@ -3,8 +3,9 @@
 namespace slrye
 {
 
-ImVec4 render(ImGuiIO& io, EditorViewState& state)
+ImVec4 render(EditorViewState& state)
 {
+    auto& io = ImGui::GetIO();
     if (state.show_demo_window)
     {
         static float value = 0.0f;

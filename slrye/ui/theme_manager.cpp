@@ -9,7 +9,7 @@ namespace slrye
 
 void ThemeManager::apply(EditorTheme theme)
 {
-    ImGuiStyle* style = nullptr;
+    ImGuiStyle* style = &ImGui::GetStyle();
     switch (theme)
     {
     case EditorTheme::SpectrumLight:
@@ -19,7 +19,7 @@ void ThemeManager::apply(EditorTheme theme)
         style = &ImGui::Spectrum::StyleColorsSpectrum(true);
         break;
     case EditorTheme::EnemyMouse:
-        style = &imgui_style_enemymouse();
+        imgui_style_enemymouse();
         break;
     }
 

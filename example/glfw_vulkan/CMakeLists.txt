@@ -23,24 +23,19 @@ option(GLFW_BUILD_TESTS "Build the GLFW test programs" OFF)
 option(GLFW_BUILD_DOCS "Build the GLFW documentation" OFF)
 option(GLFW_INSTALL "Generate installation target" OFF)
 option(GLFW_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
-add_subdirectory(${GLFW_DIR} binary_dir EXCLUDE_FROM_ALL)
-include_directories(${GLFW_DIR}/include)
 
-# Dear ImGui
-set(IMGUI_DIR ../../)
-include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends ..)
 
-# Libraries
+find_package(glfw3 CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
-#find_library(VULKAN_LIBRARY
-  #NAMES vulkan vulkan-1)
-#set(LIBRARIES "glfw;${VULKAN_LIBRARY}")
-set(LIBRARIES "glfw;Vulkan::Vulkan")
-
-# Use vulkan headers from glfw:
-include_directories(${GLFW_DIR}/deps)
-
+find_package(imgui CONFIG REQUIRED)
 file(GLOB sources *.cpp)
 
-add_executable(example_glfw_vulkan ${sources} ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_demo.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp)
-target_link_libraries(example_glfw_vulkan ${LIBRARIES})
+add_executable(example_glfw_vulkan 
+    docking.cpp
+    # example_glfw_vulkan.cpp
+)
+target_link_libraries(example_glfw_vulkan PRIVATE
+    Vulkan::Vulkan
+    glfw
+    imgui::imgui
+)

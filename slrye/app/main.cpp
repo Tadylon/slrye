@@ -2,5 +2,5 @@
 
 int main(int argc, char** argv)
 {
-    return slrye::Application(argc, argv).run();
+    return slrye::Application::instance(argc, argv).run();
 }

@@ -18,6 +18,13 @@ namespace slrye
 class EditorUI
 {
 public:
+    [[nodiscard]] static EditorUI& instance();
+
+    EditorUI(const EditorUI&) = delete;
+    EditorUI& operator=(const EditorUI&) = delete;
+    EditorUI(EditorUI&&) = delete;
+    EditorUI& operator=(EditorUI&&) = delete;
+
     void initialize();
     bool initialize_viewport(
         const VulkanContext& context,
@@ -41,6 +48,9 @@ public:
     [[nodiscard]] bool is_viewport_grid_visible() const noexcept;
 
 private:
+    EditorUI() = default;
+    ~EditorUI();
+
     void draw_menu_bar();
     void draw_workspace();
     void draw_status_bar(float height);

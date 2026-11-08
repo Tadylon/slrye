@@ -304,14 +304,25 @@ public:
         return loaded_;
     }
 
+    void set_logger(LogFn log)
+    {
+        log_ = std::move(log);
+    }
+
 private:
     LogFn log_;
     std::vector<std::unique_ptr<NativePlugin>> plugins_;
     std::vector<LoadedPlugin> loaded_;
 };
 
-PluginManager::PluginManager(LogFn log)
-    : impl_(std::make_unique<Impl>(std::move(log)))
+PluginManager& PluginManager::instance()
+{
+    static PluginManager manager;
+    return manager;
+}
+
+PluginManager::PluginManager()
+    : impl_(std::make_unique<Impl>(LogFn{}))
 {
 }
 
@@ -330,6 +341,11 @@ bool PluginManager::load_plugin(const std::filesystem::path& plugin_directory)
 void PluginManager::shutdown()
 {
     impl_->shutdown();
+}
+
+void PluginManager::set_logger(LogFn log)
+{
+    impl_->set_logger(std::move(log));
 }
 
 const std::vector<LoadedPlugin>& PluginManager::plugins() const noexcept

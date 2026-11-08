@@ -29,23 +29,28 @@ public:
 TEST_CASE("Editor UI configures docking, keyboard navigation, and a default font")
 {
     ImGuiContextScope context;
-    slrye::EditorUI editor_ui;
+    slrye::EditorUI& editor_ui = slrye::EditorUI::instance();
+    slrye::EditorUI& same_editor_ui = slrye::EditorUI::instance();
 
+    editor_ui.shutdown();
     editor_ui.initialize();
 
     ImGuiIO& io = ImGui::GetIO();
+    CHECK(&editor_ui == &same_editor_ui);
     CHECK((io.ConfigFlags & ImGuiConfigFlags_DockingEnable) != 0);
     CHECK((io.ConfigFlags & ImGuiConfigFlags_NavEnableKeyboard) != 0);
     CHECK(io.ConfigDpiScaleFonts);
     CHECK(io.ConfigDpiScaleViewports);
     CHECK(io.Fonts->Fonts.Size > 0);
     CHECK(ImGui::GetStyle().WindowRounding == 0.0f);
+    editor_ui.shutdown();
 }
 
 TEST_CASE("Editor UI switches themes at runtime")
 {
     ImGuiContextScope context;
-    slrye::EditorUI editor_ui;
+    slrye::EditorUI& editor_ui = slrye::EditorUI::instance();
+    editor_ui.shutdown();
     editor_ui.initialize();
 
     const ImVec4 light_background = ImGui::GetStyle().Colors[ImGuiCol_WindowBg];
@@ -56,6 +61,7 @@ TEST_CASE("Editor UI switches themes at runtime")
     CHECK(enemy_mouse_background.x != light_background.x);
     CHECK(enemy_mouse_background.y != light_background.y);
     CHECK(enemy_mouse_background.z != light_background.z);
+    editor_ui.shutdown();
 }
 
 TEST_CASE("Editor shell submits the workspace, docking area, and status bar")
@@ -65,11 +71,12 @@ TEST_CASE("Editor shell submits the workspace, docking area, and status bar")
     io.DisplaySize = ImVec2(1280.0f, 720.0f);
     io.DeltaTime = 1.0f / 60.0f;
 
-    slrye::EditorUI editor_ui;
+    slrye::EditorUI& editor_ui = slrye::EditorUI::instance();
+    editor_ui.shutdown();
     editor_ui.initialize();
 
     ImGui::NewFrame();
-    editor_ui.render(io);
+    editor_ui.render();
     ImGui::Render();
 
     const ImGuiWindow* workspace = ImGui::FindWindowByName("##EditorWorkspace");
@@ -79,4 +86,5 @@ TEST_CASE("Editor shell submits the workspace, docking area, and status bar")
     REQUIRE(ImGui::GetDrawData() != nullptr);
     CHECK(ImGui::GetDrawData()->Valid);
     // CHECK(ImGui::GetDrawData()->CmdListsCount > 0);
+    editor_ui.shutdown();
 }

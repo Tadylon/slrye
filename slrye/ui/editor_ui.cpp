@@ -7,6 +7,17 @@
 namespace slrye
 {
 
+EditorUI& EditorUI::instance()
+{
+    static EditorUI editor_ui;
+    return editor_ui;
+}
+
+EditorUI::~EditorUI()
+{
+    shutdown();
+}
+
 void EditorUI::initialize()
 {
     ImGuiIO& io = ImGui::GetIO();

@@ -13,6 +13,12 @@
 namespace slrye
 {
 
+ImGuiBackend& ImGuiBackend::instance()
+{
+    static ImGuiBackend backend;
+    return backend;
+}
+
 ImGuiBackend::ImGuiBackend() = default;
 
 ImGuiBackend::~ImGuiBackend()

@@ -13,11 +13,15 @@
 TEST_CASE("Plugin manager loads and shuts down the real demo plugin")
 {
     std::vector<std::string> log_messages;
-    slrye::PluginManager manager([&log_messages](const std::string& message)
+    slrye::PluginManager& manager = slrye::PluginManager::instance();
+    slrye::PluginManager& same_manager = slrye::PluginManager::instance();
+    manager.shutdown();
+    manager.set_logger([&log_messages](const std::string& message)
     {
         log_messages.push_back(message);
     });
 
+    CHECK(&manager == &same_manager);
     REQUIRE(manager.load_plugin(std::filesystem::path(SLRYE_DEMO_PLUGIN_DIR)));
     REQUIRE(manager.plugins().size() == 1);
     CHECK(manager.plugins().front().manifest.id == "com.slrye.demo");
@@ -26,4 +30,5 @@ TEST_CASE("Plugin manager loads and shuts down the real demo plugin")
 
     manager.shutdown();
     CHECK(manager.plugins().empty());
+    manager.set_logger({});
 }

@@ -355,6 +355,16 @@ static void FramePresent(ImGui_ImplVulkanH_Window* wd)
 namespace slrye
 {
 
+VulkanBackend& VulkanBackend::instance()
+{
+    // ImGui owns process-wide state, so construct it before VulkanBackend's
+    // destructor is registered to preserve the required reverse teardown order.
+    static ImGuiBackend& imgui_backend = ImGuiBackend::instance();
+    (void)imgui_backend;
+    static VulkanBackend backend;
+    return backend;
+}
+
 VulkanBackend::VulkanBackend() = default;
 
 VulkanBackend::~VulkanBackend()
@@ -442,8 +452,7 @@ bool VulkanBackend::initialize(const char* title, int width, int height)
         g_Allocator};
 
     initialized_ = true;
-    imgui_backend_ = std::make_unique<ImGuiBackend>();
-    if (!imgui_backend_->initialize(window, init_info))
+    if (!ImGuiBackend::instance().initialize(window, init_info))
     {
         shutdown();
         return false;
@@ -489,7 +498,7 @@ bool VulkanBackend::begin_frame()
         return false;
     }
 
-    return imgui_backend_ != nullptr && imgui_backend_->begin_frame();
+    return ImGuiBackend::instance().begin_frame();
 }
 
 void VulkanBackend::render(ImVec4 clear_color)
@@ -510,10 +519,7 @@ void VulkanBackend::render(ImVec4 clear_color)
         FrameRender(window_data, draw_data);
     }
 
-    if (imgui_backend_ != nullptr)
-    {
-        imgui_backend_->render_platform_windows();
-    }
+    ImGuiBackend::instance().render_platform_windows();
 
     if (!main_is_minimized)
     {
@@ -531,11 +537,7 @@ void VulkanBackend::shutdown()
     const VkResult wait_result = vkDeviceWaitIdle(g_Device);
     check_vk_result(wait_result);
 
-    if (imgui_backend_ != nullptr)
-    {
-        imgui_backend_->shutdown();
-        imgui_backend_.reset();
-    }
+    ImGuiBackend::instance().shutdown();
 
     CleanupVulkanWindow(&g_MainWindowData);
     CleanupVulkan();
@@ -549,7 +551,7 @@ void VulkanBackend::shutdown()
 
 ImGuiIO& VulkanBackend::io() const
 {
-    return imgui_backend_->io();
+    return ImGuiBackend::instance().io();
 }
 
 const VulkanContext& VulkanBackend::context() const noexcept

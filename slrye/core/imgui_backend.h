@@ -11,8 +11,7 @@ namespace slrye
 class ImGuiBackend
 {
 public:
-    ImGuiBackend();
-    ~ImGuiBackend();
+    [[nodiscard]] static ImGuiBackend& instance();
 
     ImGuiBackend(const ImGuiBackend&) = delete;
     ImGuiBackend& operator=(const ImGuiBackend&) = delete;
@@ -28,6 +27,9 @@ public:
     [[nodiscard]] bool is_initialized() const noexcept;
 
 private:
+    ImGuiBackend();
+    ~ImGuiBackend();
+
     bool initialized_ = false;
 };
 

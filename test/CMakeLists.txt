@@ -12,6 +12,7 @@ function(slrye_add_test target source)
 endfunction()
 
 slrye_add_test(slrye_app_tests app/launch_options_test.cpp)
+slrye_add_test(slrye_application_tests app/application_test.cpp)
 slrye_add_test(slrye_core_tests core/imgui_backend_test.cpp)
 slrye_add_test(slrye_domain_tests domain/entity_id_test.cpp)
 slrye_add_test(slrye_scene_tests domain/scene_test.cpp)

@@ -19,8 +19,7 @@ class Scene;
 class Application
 {
 public:
-    Application(int argc, char** argv);
-    ~Application();
+    [[nodiscard]] static Application& instance(int argc, char** argv);
 
     Application(const Application&) = delete;
     Application& operator=(const Application&) = delete;
@@ -30,6 +29,9 @@ public:
     int run();
 
 private:
+    Application(int argc, char** argv);
+    ~Application();
+
     void load_editor_preferences();
     bool load_startup_project(std::string& error);
     bool save_editor_preferences();
@@ -40,9 +42,10 @@ private:
     RecentProjects recent_projects_;
     std::filesystem::path settings_path_;
     std::filesystem::path active_project_path_;
-    PluginManager plugin_manager_;
-    std::unique_ptr<VulkanBackend> backend_;
-    std::unique_ptr<EditorUI> ui_;
+    PluginManager& plugin_manager_;
+    VulkanBackend& backend_;
+    EditorUI& ui_;
+    bool ui_initialized_ = false;
 };
 
 }

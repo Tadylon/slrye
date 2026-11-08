@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-
 #include <imgui.h>
 
 #include <core/vulkan_context.h>
@@ -9,13 +7,10 @@
 namespace slrye
 {
 
-class ImGuiBackend;
-
 class VulkanBackend
 {
 public:
-    VulkanBackend();
-    ~VulkanBackend();
+    [[nodiscard]] static VulkanBackend& instance();
 
     VulkanBackend(const VulkanBackend&) = delete;
     VulkanBackend& operator=(const VulkanBackend&) = delete;
@@ -32,8 +27,10 @@ public:
     [[nodiscard]] const VulkanContext& context() const noexcept;
 
 private:
+    VulkanBackend();
+    ~VulkanBackend();
+
     VulkanContext context_;
-    std::unique_ptr<ImGuiBackend> imgui_backend_;
     bool initialized_ = false;
 };
 

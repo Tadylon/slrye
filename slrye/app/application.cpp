@@ -19,14 +19,23 @@
 namespace slrye
 {
 
+Application& Application::instance(int argc, char** argv)
+{
+    static Application application(argc, argv);
+    return application;
+}
+
 Application::Application(int argc, char** argv)
     : launch_options_(parse_launch_options(argc, argv)),
       active_scene_(std::make_unique<Scene>("Untitled")),
-      plugin_manager_([](const std::string& message)
-      {
-          fprintf(stderr, "[plugin] %s\n", message.c_str());
-      })
+      plugin_manager_(PluginManager::instance()),
+      backend_(VulkanBackend::instance()),
+      ui_(EditorUI::instance())
 {
+    plugin_manager_.set_logger([](const std::string& message)
+    {
+        fprintf(stderr, "[plugin] %s\n", message.c_str());
+    });
 }
 
 Application::~Application() = default;
@@ -51,8 +60,7 @@ int Application::run()
         }
     }
 
-    backend_ = std::make_unique<VulkanBackend>();
-    if (!backend_->initialize("Slrye", 1280, 800))
+    if (!backend_.initialize("Slrye", 1280, 800))
     {
         save_editor_preferences();
         return 1;
@@ -60,19 +68,19 @@ int Application::run()
 
     plugin_manager_.load_all(platform::plugins_directory(launch_options_.executable_path));
 
-    ui_ = std::make_unique<EditorUI>();
-    ui_->initialize();
-    ui_->set_theme(settings_.theme);
-    ui_->set_viewport_camera_state(
+    ui_.initialize();
+    ui_initialized_ = true;
+    ui_.set_theme(settings_.theme);
+    ui_.set_viewport_camera_state(
         settings_.camera_position,
         settings_.camera_yaw_degrees,
         settings_.camera_pitch_degrees);
-    ui_->set_viewport_camera_speed(settings_.camera_move_speed);
-    ui_->set_viewport_grid_visible(settings_.show_viewport_grid);
+    ui_.set_viewport_camera_speed(settings_.camera_move_speed);
+    ui_.set_viewport_grid_visible(settings_.show_viewport_grid);
 
     std::string viewport_error;
-    if (!ui_->initialize_viewport(
-            backend_->context(),
+    if (!ui_.initialize_viewport(
+            backend_.context(),
             platform::assets_directory(launch_options_.executable_path) / "shaders",
             *active_scene_,
             &viewport_error))
@@ -80,22 +88,22 @@ int Application::run()
         fprintf(stderr, "Viewport warning: %s\n", viewport_error.c_str());
     }
 
-    while (!backend_->should_close())
+    while (!backend_.should_close())
     {
-        if (!backend_->begin_frame())
+        if (!backend_.begin_frame())
         {
             continue;
         }
 
-        const ImVec4 clear_color = ui_->render();
-        backend_->render(clear_color);
+        const ImVec4 clear_color = ui_.render();
+        backend_.render(clear_color);
     }
 
     save_editor_preferences();
-    ui_->shutdown();
-    ui_.reset();
+    ui_.shutdown();
+    ui_initialized_ = false;
     plugin_manager_.shutdown();
-    backend_->shutdown();
+    backend_.shutdown();
     return 0;
 }
 
@@ -167,15 +175,15 @@ bool Application::load_startup_project(std::string& error)
 
 bool Application::save_editor_preferences()
 {
-    if (ui_ != nullptr)
+    if (ui_initialized_)
     {
-        const PerspectiveCamera& camera = ui_->viewport_camera();
-        settings_.theme = ui_->theme();
+        const PerspectiveCamera& camera = ui_.viewport_camera();
+        settings_.theme = ui_.theme();
         settings_.camera_position = camera.position();
         settings_.camera_yaw_degrees = camera.yaw_degrees();
         settings_.camera_pitch_degrees = camera.pitch_degrees();
-        settings_.camera_move_speed = ui_->viewport_camera_speed();
-        settings_.show_viewport_grid = ui_->is_viewport_grid_visible();
+        settings_.camera_move_speed = ui_.viewport_camera_speed();
+        settings_.show_viewport_grid = ui_.is_viewport_grid_visible();
     }
     settings_.recent_projects = recent_projects_.entries();
 

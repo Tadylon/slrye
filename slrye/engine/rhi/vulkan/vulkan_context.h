@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 struct VulkanContext

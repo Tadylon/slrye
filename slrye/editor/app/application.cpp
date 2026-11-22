@@ -9,14 +9,16 @@
 #include <utility>
 
 #include <editor/backend/imgui_backend.h>
+#include <editor/shell/editor_ui.h>
+#include <editor/shell/editor_settings.h>
+
+
 #include <engine/rhi/vulkan/vulkan_backend.h>
 #include <engine/renderer/camera.h>
 #include <engine/scene/scene.h>
 #include <engine/platform/paths.h>
 #include <engine/services/project/project_file.h>
 #include <engine/services/serialization/scene_serializer.h>
-#include <engine/services/settings/editor_settings.h>
-#include <editor/shell/editor_ui.h>
 
 namespace slrye
 {
@@ -29,9 +31,9 @@ Application& Application::instance(int argc, char** argv)
 
 Application::Application(int argc, char** argv)
     : launch_options_(parse_launch_options(argc, argv)),
-      active_scene_(std::make_unique<Scene>("Untitled")),
+      active_scene_(std::make_unique<engine::Scene>("Untitled")),
     //   plugin_manager_(PluginManager::instance()),
-      backend_(VulkanBackend::instance()),
+      backend_(engine::VulkanBackend::instance()),
       imgui_backend_(ImGuiBackend::instance()),
       ui_(EditorUI::instance())
 {

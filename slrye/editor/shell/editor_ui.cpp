@@ -59,7 +59,7 @@ bool EditorUI::initialize_viewport(
     return viewport_.initialize(context, shader_directory, scene, error);
 }
 
-void EditorUI::select_entity(std::optional<EntityId> entity)
+void EditorUI::select_entity(std::optional<engine::EntityId> entity)
 {
     selected_entity_ = entity;
     viewport_.set_selected_entity(entity);
@@ -130,12 +130,12 @@ void EditorUI::set_viewport_grid_visible(bool visible) noexcept
     viewport_.set_grid_visible(visible);
 }
 
-const PerspectiveCamera& EditorUI::viewport_camera() const noexcept
+const engine::PerspectiveCamera& EditorUI::viewport_camera() const noexcept
 {
     return viewport_.camera();
 }
 
-std::optional<EntityId> EditorUI::selected_entity() const noexcept
+std::optional<engine::EntityId> EditorUI::selected_entity() const noexcept
 {
     return selected_entity_;
 }

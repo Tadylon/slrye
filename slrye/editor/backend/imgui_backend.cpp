@@ -78,7 +78,7 @@ void destroy_imgui_descriptor_pool(
 }
 
 void setup_vulkan_window(
-    const VulkanContext& context,
+    const engine::VulkanContext& context,
     GLFWwindow* window,
     ImGui_ImplVulkanH_Window& window_data)
 {
@@ -132,7 +132,7 @@ void setup_vulkan_window(
 }
 
 void cleanup_vulkan_window(
-    const VulkanContext& context,
+    const engine::VulkanContext& context,
     ImGui_ImplVulkanH_Window& window_data)
 {
     if (context.device != VK_NULL_HANDLE && context.instance != VK_NULL_HANDLE &&
@@ -148,7 +148,7 @@ void cleanup_vulkan_window(
 }
 
 void render_frame(
-    const VulkanContext& context,
+    const engine::VulkanContext& context,
     ImGui_ImplVulkanH_Window& window_data,
     ImDrawData* draw_data,
     bool& swapchain_rebuild)
@@ -227,7 +227,7 @@ void render_frame(
 }
 
 void present_frame(
-    const VulkanContext& context,
+    const engine::VulkanContext& context,
     ImGui_ImplVulkanH_Window& window_data,
     bool& swapchain_rebuild)
 {
@@ -276,7 +276,7 @@ ImGuiBackend::~ImGuiBackend()
     shutdown();
 }
 
-bool ImGuiBackend::initialize(GLFWwindow* window, const VulkanContext& context)
+bool ImGuiBackend::initialize(GLFWwindow* window, const engine::VulkanContext& context)
 {
     if (initialized_ || ImGui::GetCurrentContext() != nullptr ||
         window == nullptr || !context.is_valid())
@@ -424,7 +424,7 @@ ImGuiIO& ImGuiBackend::io() const
     return ImGui::GetIO();
 }
 
-const VulkanContext* ImGuiBackend::vulkan_context() const noexcept
+const engine::VulkanContext* ImGuiBackend::vulkan_context() const noexcept
 {
     return context_;
 }

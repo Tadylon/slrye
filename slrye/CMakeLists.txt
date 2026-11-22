@@ -26,7 +26,7 @@ set(SLRYE_ENGINE_SOURCES
     engine/services/project/project_file.cpp
     engine/services/project/recent_projects.cpp
     engine/services/serialization/scene_serializer.cpp
-    engine/services/settings/editor_settings.cpp
+    # engine/services/settings/editor_settings.cpp
 )
 
 set(SLRYE_EDITOR_SOURCES

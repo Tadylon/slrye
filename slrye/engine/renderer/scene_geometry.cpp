@@ -11,7 +11,7 @@
 #include <engine/scene/scene.h>
 #include <engine/scene/scene_transform.h>
 
-namespace slrye
+namespace slrye::engine
 {
 namespace
 {

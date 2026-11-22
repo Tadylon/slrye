@@ -18,7 +18,7 @@
 #include <engine/platform/file_io.h>
 #include <engine/renderer/scene_geometry.h>
 
-namespace slrye
+namespace slrye::engine
 {
 namespace
 {
@@ -249,10 +249,7 @@ bool SceneRenderer::Impl::is_initialized() const noexcept
     return initialized_;
 }
 
-}
 
-namespace slrye
-{
 
 bool SceneRenderer::Impl::create_shader_module(
     const std::filesystem::path& path,
@@ -408,10 +405,6 @@ bool SceneRenderer::Impl::create_render_pass(std::string* error)
         error);
 }
 
-}
-
-namespace slrye
-{
 
 bool SceneRenderer::Impl::create_pipeline(
     const std::filesystem::path& shader_directory,
@@ -577,10 +570,6 @@ bool SceneRenderer::Impl::create_command_resources(std::string* error)
         error);
 }
 
-}
-
-namespace slrye
-{
 
 bool SceneRenderer::Impl::create_render_target(
     std::uint32_t width,
@@ -751,10 +740,6 @@ bool SceneRenderer::Impl::ensure_render_target(
     return create_render_target(width, height, error);
 }
 
-}
-
-namespace slrye
-{
 
 bool SceneRenderer::Impl::ensure_vertex_capacity(
     VkDeviceSize required_size,
@@ -947,11 +932,6 @@ bool SceneRenderer::Impl::record_and_submit(
     }
     return check_result(vkQueueWaitIdle(context_.graphics_queue), "vkQueueWaitIdle", error);
 }
-
-}
-
-namespace slrye
-{
 
 std::uint32_t SceneRenderer::Impl::find_memory_type(
     std::uint32_t type_filter,

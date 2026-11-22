@@ -27,10 +27,10 @@ class CameraController
 {
 public:
     [[nodiscard]] bool update(
-        PerspectiveCamera& camera,
+        engine::PerspectiveCamera& camera,
         const CameraControllerInput& input) const noexcept;
 
-    void focus(PerspectiveCamera& camera, const glm::vec3& target) const noexcept;
+    void focus(engine::PerspectiveCamera& camera, const glm::vec3& target) const noexcept;
 
     float move_speed = 6.0f;
     float rotation_sensitivity = 0.15f;
@@ -40,7 +40,7 @@ public:
 
 private:
     [[nodiscard]] glm::vec3 movement_direction(
-        const PerspectiveCamera& camera,
+        const engine::PerspectiveCamera& camera,
         const CameraControllerInput& input) const noexcept;
 };
 

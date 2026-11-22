@@ -7,7 +7,7 @@
 
 #include <engine/scene/entity_id.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 class Scene;

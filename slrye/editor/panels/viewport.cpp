@@ -14,9 +14,9 @@ namespace slrye
 {
 
 bool Viewport::initialize(
-    const VulkanContext& context,
+    const engine::VulkanContext& context,
     const std::filesystem::path& shader_directory,
-    Scene& scene,
+    engine::Scene& scene,
     std::string* error)
 {
     scene_ = &scene;
@@ -125,7 +125,7 @@ void Viewport::shutdown()
     rendered_height_ = 0;
 }
 
-void Viewport::set_scene(Scene& scene) noexcept
+void Viewport::set_scene(engine::Scene& scene) noexcept
 {
     scene_ = &scene;
     selected_entity_.reset();
@@ -142,7 +142,7 @@ void Viewport::set_camera_state(
     request_redraw();
 }
 
-void Viewport::set_selected_entity(std::optional<EntityId> entity) noexcept
+void Viewport::set_selected_entity(std::optional<engine::EntityId> entity) noexcept
 {
     if (selected_entity_ == entity)
     {
@@ -172,17 +172,17 @@ void Viewport::set_grid_visible(bool visible) noexcept
     request_redraw();
 }
 
-PerspectiveCamera& Viewport::camera() noexcept
+engine::PerspectiveCamera& Viewport::camera() noexcept
 {
     return camera_;
 }
 
-const PerspectiveCamera& Viewport::camera() const noexcept
+const engine::PerspectiveCamera& Viewport::camera() const noexcept
 {
     return camera_;
 }
 
-std::optional<EntityId> Viewport::selected_entity() const noexcept
+std::optional<engine::EntityId> Viewport::selected_entity() const noexcept
 {
     return selected_entity_;
 }
@@ -276,14 +276,14 @@ void Viewport::process_input(
 
     if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
     {
-        const Ray ray = camera_.ray_from_viewport(
+        const engine::Ray ray = camera_.ray_from_viewport(
             io.MousePos.x - image_position.x,
             io.MousePos.y - image_position.y,
             image_size.x,
             image_size.y);
-        const std::optional<PickResult> result = pick_entity(*scene_, ray);
+        const std::optional<engine::PickResult> result = pick_entity(*scene_, ray);
         set_selected_entity(result.has_value()
-            ? std::optional<EntityId>(result->entity)
+            ? std::optional<engine::EntityId>(result->entity)
             : std::nullopt);
     }
 }

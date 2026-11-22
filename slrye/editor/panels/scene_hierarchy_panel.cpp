@@ -12,18 +12,18 @@
 namespace slrye
 {
 
-void SceneHierarchyPanel::set_scene(Scene* scene) noexcept
+void SceneHierarchyPanel::set_scene(engine::Scene* scene) noexcept
 {
     scene_ = scene;
     selected_entity_.reset();
 }
 
-void SceneHierarchyPanel::set_selected_entity(std::optional<EntityId> entity) noexcept
+void SceneHierarchyPanel::set_selected_entity(std::optional<engine::EntityId> entity) noexcept
 {
     selected_entity_ = entity;
 }
 
-std::optional<EntityId> SceneHierarchyPanel::selected_entity() const noexcept
+std::optional<engine::EntityId> SceneHierarchyPanel::selected_entity() const noexcept
 {
     return selected_entity_;
 }
@@ -60,14 +60,14 @@ void SceneHierarchyPanel::render()
 
     if (ImGui::Button("+ Create Entity"))
     {
-        Entity created = scene_->create_entity("New Entity");
-        created.add<TransformComponent>();
+        engine::Entity created = scene_->create_entity("New Entity");
+        created.add<engine::TransformComponent>();
         selected_entity_ = created.id();
     }
 
     ImGui::Separator();
 
-    for (EntityId root_id : scene_->root_entities())
+    for (engine::EntityId root_id : scene_->root_entities())
     {
         draw_entity_node(root_id);
     }
@@ -83,21 +83,21 @@ void SceneHierarchyPanel::render()
     ImGui::End();
 }
 
-void SceneHierarchyPanel::draw_entity_node(EntityId id)
+void SceneHierarchyPanel::draw_entity_node(engine::EntityId id)
 {
     if (scene_ == nullptr)
     {
         return;
     }
 
-    Entity entity = scene_->find(id);
+    engine::Entity entity = scene_->find(id);
     if (!entity.is_valid())
     {
         return;
     }
 
     const std::string name = entity.name();
-    const std::vector<EntityId> children = scene_->children(id);
+    const std::vector<engine::EntityId> children = scene_->children(id);
 
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
     if (selected_entity_.has_value() && *selected_entity_ == id)
@@ -123,7 +123,7 @@ void SceneHierarchyPanel::draw_entity_node(EntityId id)
     // 拖拽成父子层级关系
     if (ImGui::BeginDragDropSource())
     {
-        ImGui::SetDragDropPayload("HIERARCHY_ENTITY", &id, sizeof(EntityId));
+        ImGui::SetDragDropPayload("HIERARCHY_ENTITY", &id, sizeof(engine::EntityId));
         ImGui::Text("Move %s", name.c_str());
         ImGui::EndDragDropSource();
     }
@@ -132,7 +132,7 @@ void SceneHierarchyPanel::draw_entity_node(EntityId id)
     {
         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY"))
         {
-            const EntityId dropped_id = *static_cast<const EntityId*>(payload->Data);
+            const engine::EntityId dropped_id = *static_cast<const engine::EntityId*>(payload->Data);
             if (dropped_id != id)
             {
                 scene_->set_parent(dropped_id, id);
@@ -146,8 +146,8 @@ void SceneHierarchyPanel::draw_entity_node(EntityId id)
     {
         if (ImGui::MenuItem("Add Child Entity"))
         {
-            Entity child = scene_->create_entity("Child Entity");
-            child.add<TransformComponent>();
+            engine::Entity child = scene_->create_entity("Child Entity");
+            child.add<engine::TransformComponent>();
             scene_->set_parent(child.id(), id);
         }
         if (ImGui::MenuItem("Clear Parent"))
@@ -164,7 +164,7 @@ void SceneHierarchyPanel::draw_entity_node(EntityId id)
 
     if (opened)
     {
-        for (EntityId child_id : children)
+        for (engine::EntityId child_id : children)
         {
             draw_entity_node(child_id);
         }
@@ -189,22 +189,22 @@ void SceneHierarchyPanel::draw_context_menu()
     {
         if (ImGui::MenuItem("Create Empty Entity"))
         {
-            Entity entity = scene_->create_entity("Entity");
-            entity.add<TransformComponent>();
+            engine::Entity entity = scene_->create_entity("Entity");
+            entity.add<engine::TransformComponent>();
             selected_entity_ = entity.id();
         }
         if (ImGui::MenuItem("Create Light"))
         {
-            Entity entity = scene_->create_entity("Point Light");
-            entity.add<TransformComponent>(glm::vec3(0.0f, 3.0f, 0.0f));
-            entity.add<LightComponent>();
+            engine::Entity entity = scene_->create_entity("Point Light");
+            entity.add<engine::TransformComponent>(glm::vec3(0.0f, 3.0f, 0.0f));
+            entity.add<engine::LightComponent>();
             selected_entity_ = entity.id();
         }
         if (ImGui::MenuItem("Create Cube (Collider)"))
         {
-            Entity entity = scene_->create_entity("Cube");
-            entity.add<TransformComponent>();
-            entity.add<ColliderComponent>();
+            engine::Entity entity = scene_->create_entity("Cube");
+            entity.add<engine::TransformComponent>();
+            entity.add<engine::ColliderComponent>();
             selected_entity_ = entity.id();
         }
         ImGui::EndPopup();

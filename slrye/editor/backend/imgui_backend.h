@@ -20,13 +20,13 @@ public:
     ImGuiBackend(ImGuiBackend&&) = delete;
     ImGuiBackend& operator=(ImGuiBackend&&) = delete;
 
-    bool initialize(GLFWwindow* window, const VulkanContext& context);
+    bool initialize(GLFWwindow* window, const engine::VulkanContext& context);
     bool begin_frame();
     void render(ImVec4 clear_color);
     void shutdown();
 
     [[nodiscard]] ImGuiIO& io() const;
-    [[nodiscard]] const VulkanContext* vulkan_context() const noexcept;
+    [[nodiscard]] const engine::VulkanContext* vulkan_context() const noexcept;
     [[nodiscard]] bool is_initialized() const noexcept;
 
 private:
@@ -36,7 +36,7 @@ private:
     bool ensure_swapchain();
     void render_platform_windows();
 
-    const VulkanContext* context_ = nullptr;
+    const engine::VulkanContext* context_ = nullptr;
     GLFWwindow* window_ = nullptr;
     VkDescriptorPool descriptor_pool_ = VK_NULL_HANDLE;
     ImGui_ImplVulkanH_Window window_data_{};

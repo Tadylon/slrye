@@ -48,11 +48,11 @@ public:
     void set_viewport_camera_speed(float speed) noexcept;
     void set_viewport_grid_visible(bool visible) noexcept;
 
-    void select_entity(std::optional<EntityId> entity);
+    void select_entity(std::optional<engine::EntityId> entity);
 
     [[nodiscard]] EditorTheme theme() const noexcept;
-    [[nodiscard]] const PerspectiveCamera& viewport_camera() const noexcept;
-    [[nodiscard]] std::optional<EntityId> selected_entity() const noexcept;
+    [[nodiscard]] const engine::PerspectiveCamera& viewport_camera() const noexcept;
+    [[nodiscard]] std::optional<engine::EntityId> selected_entity() const noexcept;
     [[nodiscard]] float viewport_camera_speed() const noexcept;
     [[nodiscard]] bool is_viewport_grid_visible() const noexcept;
 
@@ -73,7 +73,7 @@ private:
     EditorSettings* settings_ = nullptr;
     EditorViewState view_state_;
     Scene* scene_ = nullptr;
-    std::optional<EntityId> selected_entity_;
+    std::optional<engine::EntityId> selected_entity_;
 
     Viewport viewport_;
     SceneHierarchyPanel hierarchy_panel_;

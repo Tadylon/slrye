@@ -5,7 +5,7 @@
 
 struct GLFWwindow;
 
-namespace slrye
+namespace slrye::engine
 {
 
 class VulkanBackend

@@ -9,7 +9,7 @@ namespace slrye
 {
 
 bool CameraController::update(
-    PerspectiveCamera& camera,
+    engine::PerspectiveCamera& camera,
     const CameraControllerInput& input) const noexcept
 {
     bool changed = false;
@@ -45,14 +45,14 @@ bool CameraController::update(
 }
 
 void CameraController::focus(
-    PerspectiveCamera& camera,
+    engine::PerspectiveCamera& camera,
     const glm::vec3& target) const noexcept
 {
     camera.set_position(target - camera.forward() * focus_distance);
 }
 
 glm::vec3 CameraController::movement_direction(
-    const PerspectiveCamera& camera,
+    const engine::PerspectiveCamera& camera,
     const CameraControllerInput& input) const noexcept
 {
     glm::vec3 movement{0.0f};

@@ -12,36 +12,37 @@
 #include <engine/renderer/scene_renderer.h>
 #include <editor/panels/camera_controller.h>
 
-namespace slrye
+namespace slrye::engine
 {
-
 class Scene;
 struct VulkanContext;
+}
 
+namespace slrye {
 class Viewport
 {
 public:
     bool initialize(
-        const VulkanContext& context,
+        const engine::VulkanContext& context,
         const std::filesystem::path& shader_directory,
-        Scene& scene,
+        engine::Scene& scene,
         std::string* error = nullptr);
     void render();
     void shutdown();
 
-    void set_scene(Scene& scene) noexcept;
+    void set_scene(engine::Scene& scene) noexcept;
     void set_camera_state(
         const glm::vec3& position,
         float yaw_degrees,
         float pitch_degrees) noexcept;
-    void set_selected_entity(std::optional<EntityId> entity) noexcept;
+    void set_selected_entity(std::optional<engine::EntityId> entity) noexcept;
     void set_visible(bool visible) noexcept;
     void set_camera_speed(float speed) noexcept;
     void set_grid_visible(bool visible) noexcept;
 
-    [[nodiscard]] PerspectiveCamera& camera() noexcept;
-    [[nodiscard]] const PerspectiveCamera& camera() const noexcept;
-    [[nodiscard]] std::optional<EntityId> selected_entity() const noexcept;
+    [[nodiscard]] engine::PerspectiveCamera& camera() noexcept;
+    [[nodiscard]] const engine::PerspectiveCamera& camera() const noexcept;
+    [[nodiscard]] std::optional<engine::EntityId> selected_entity() const noexcept;
     [[nodiscard]] bool is_initialized() const noexcept;
     [[nodiscard]] bool is_visible() const noexcept;
     [[nodiscard]] float camera_speed() const noexcept;
@@ -53,11 +54,11 @@ private:
     void focus_selected();
     void request_redraw() noexcept;
 
-    SceneRenderer renderer_;
+    engine::SceneRenderer renderer_;
     CameraController controller_;
-    PerspectiveCamera camera_;
-    Scene* scene_ = nullptr;
-    std::optional<EntityId> selected_entity_;
+    engine::PerspectiveCamera camera_;
+    engine::Scene* scene_ = nullptr;
+    std::optional<engine::EntityId> selected_entity_;
     std::uint64_t rendered_scene_revision_ = 0;
     std::uint32_t rendered_width_ = 0;
     std::uint32_t rendered_height_ = 0;

@@ -21,8 +21,8 @@ public:
     void set_scene(Scene* scene) noexcept;
     void render();
 
-    void set_selected_entity(std::optional<EntityId> entity) noexcept;
-    [[nodiscard]] std::optional<EntityId> selected_entity() const noexcept;
+    void set_selected_entity(std::optional<engine::EntityId> entity) noexcept;
+    [[nodiscard]] std::optional<engine::EntityId> selected_entity() const noexcept;
 
     void set_visible(bool visible) noexcept;
     [[nodiscard]] bool is_visible() const noexcept;
@@ -32,7 +32,7 @@ private:
     static bool draw_vec3_control(const char* label, glm::vec3& values, float reset_value = 0.0f);
 
     Scene* scene_ = nullptr;
-    std::optional<EntityId> selected_entity_;
+    std::optional<engine::EntityId> selected_entity_;
     bool visible_ = true;
 };
 

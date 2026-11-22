@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <engine/services/settings/editor_settings.h>
+#include <editor/shell/editor_settings.h>
 
 namespace slrye
 {

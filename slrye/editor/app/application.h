@@ -10,13 +10,15 @@
 // #include <engine/plugin/plugin_manager.h>
 #include <editor/shell/editor_settings.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 class VulkanBackend;
-class ImGuiBackend;
-class EditorUI;
 class Scene;
+}
+namespace slrye {
+class EditorUI;
+class ImGuiBackend;
 
 class Application
 {
@@ -39,13 +41,13 @@ private:
     bool save_editor_preferences();
 
     ApplicationLaunchOptions launch_options_;
-    std::unique_ptr<Scene> active_scene_;
+    std::unique_ptr<engine::Scene> active_scene_;
     EditorSettings settings_;
-    RecentProjects recent_projects_;
+    engine::RecentProjects recent_projects_;
     std::filesystem::path settings_path_;
     std::filesystem::path active_project_path_;
     // PluginManager& plugin_manager_;
-    VulkanBackend& backend_;
+    engine::VulkanBackend& backend_;
     ImGuiBackend& imgui_backend_;
     EditorUI& ui_;
     bool ui_initialized_ = false;

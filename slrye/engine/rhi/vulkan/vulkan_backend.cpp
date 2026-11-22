@@ -15,7 +15,7 @@
 #include <thread>
 #include <vector>
 
-namespace slrye
+namespace slrye::engine
 {
 namespace
 {

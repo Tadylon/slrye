@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-namespace slrye
+namespace slrye::platform
 {
 
 bool read_text_file(
@@ -17,4 +17,10 @@ bool write_text_file_atomic(
     std::string_view contents,
     std::string* error = nullptr);
 
+}
+
+namespace slrye
+{
+using platform::read_text_file;
+using platform::write_text_file_atomic;
 }

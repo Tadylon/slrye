@@ -6,12 +6,12 @@
 #include <stdexcept>
 #include <utility>
 
-namespace slrye
+namespace slrye::engine
 {
 
 bool Entity::is_valid() const noexcept
 {
-    return scene_ != nullptr && registry_ != nullptr && scene_->contains(id_);
+    return scene_ != nullptr && scene_->contains(id_);
 }
 
 EntityId Entity::id() const noexcept
@@ -21,7 +21,12 @@ EntityId Entity::id() const noexcept
 
 std::string Entity::name() const
 {
-    return is_valid() ? registry_->get<NameComponent>(handle_).value : std::string{};
+    if (!is_valid())
+    {
+        return {};
+    }
+    const auto* comp = scene_->try_get_component<NameComponent>(id_);
+    return comp != nullptr ? comp->value : std::string{};
 }
 
 void Entity::set_name(std::string name)
@@ -31,8 +36,16 @@ void Entity::set_name(std::string name)
         throw std::logic_error("Cannot rename an invalid entity");
     }
 
-    registry_->get<NameComponent>(handle_).value = std::move(name);
-    mark_dirty();
+    auto* comp = scene_->try_get_component<NameComponent>(id_);
+    if (comp != nullptr)
+    {
+        comp->value = std::move(name);
+    }
+    else
+    {
+        scene_->add_component<NameComponent>(id_, std::move(name));
+    }
+    scene_->mark_dirty();
 }
 
 std::optional<EntityId> Entity::parent() const
@@ -47,7 +60,7 @@ std::vector<EntityId> Entity::children() const
 
 bool Entity::set_parent(Entity parent_entity)
 {
-    return is_valid() && parent_entity.is_valid() && scene_->set_parent(id_, parent_entity.id_);
+    return is_valid() && parent_entity.is_valid() && scene_->set_parent(id_, parent_entity.id());
 }
 
 bool Entity::clear_parent()
@@ -111,9 +124,10 @@ Entity Scene::create_entity(EntityId id, std::string name)
     registry_.emplace<HierarchyComponent>(handle);
 
     entities_.emplace(id, handle);
+    entity_to_id_.emplace(handle, id);
     entity_order_.push_back(id);
     mark_dirty();
-    return Entity(this, &registry_, handle, id);
+    return Entity(this, id);
 }
 
 bool Scene::destroy_entity(EntityId id)
@@ -141,7 +155,13 @@ bool Scene::destroy_entity(EntityId id)
         }
     }
 
-    registry_.destroy(handle_for(id));
+    const entt::entity handle = handle_for(id);
+    if (handle != entt::null)
+    {
+        registry_.destroy(handle);
+        entity_to_id_.erase(handle);
+    }
+
     entities_.erase(id);
     std::erase(entity_order_, id);
     mark_dirty();
@@ -150,18 +170,12 @@ bool Scene::destroy_entity(EntityId id)
 
 Entity Scene::find(EntityId id)
 {
-    const entt::entity handle = handle_for(id);
-    if (handle == entt::null)
+    if (!contains(id))
     {
         return {};
     }
 
-    return Entity(this, &registry_, handle, id);
-}
-
-entt::entity Scene::entity_handle(EntityId id) const noexcept
-{
-    return handle_for(id);
+    return Entity(this, id);
 }
 
 bool Scene::contains(EntityId id) const noexcept
@@ -309,16 +323,6 @@ void Scene::mark_dirty() noexcept
 void Scene::clear_dirty() noexcept
 {
     dirty_ = false;
-}
-
-entt::registry& Scene::registry() noexcept
-{
-    return registry_;
-}
-
-const entt::registry& Scene::registry() const noexcept
-{
-    return registry_;
 }
 
 EntityId Scene::generate_id()

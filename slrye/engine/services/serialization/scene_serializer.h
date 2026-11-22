@@ -5,9 +5,9 @@
 #include <memory>
 #include <string>
 
-// #include <engine/scene/scene.h>
+#include <engine/scene/scene.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 inline constexpr std::uint32_t kSceneFormatVersion = 1;

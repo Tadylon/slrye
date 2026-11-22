@@ -11,7 +11,7 @@
 #include <engine/scene/scene.h>
 #include <engine/platform/file_io.h>
 
-namespace slrye
+namespace slrye::engine
 {
 namespace
 {
@@ -168,20 +168,19 @@ ColliderType read_collider_type(const YAML::Node& node, ColliderType fallback)
 void write_entity_components(
     YAML::Node& entity,
     const Scene& scene,
-    EntityId id,
-    entt::entity handle)
+    EntityId id)
 {
-    if (handle == entt::null)
+    if (!scene.contains(id))
     {
         throw std::runtime_error("Scene contains an invalid entity while saving");
     }
 
-    if (const NameComponent* name = scene.registry().try_get<NameComponent>(handle))
+    if (const NameComponent* name = scene.try_get_component<NameComponent>(id))
     {
         entity["name"] = name->value;
     }
 
-    if (const TransformComponent* transform = scene.registry().try_get<TransformComponent>(handle))
+    if (const TransformComponent* transform = scene.try_get_component<TransformComponent>(id))
     {
         YAML::Node transform_node;
         transform_node["position"] = write_vec3(transform->position);
@@ -190,7 +189,7 @@ void write_entity_components(
         entity["transform"] = transform_node;
     }
 
-    if (const CameraComponent* camera = scene.registry().try_get<CameraComponent>(handle))
+    if (const CameraComponent* camera = scene.try_get_component<CameraComponent>(id))
     {
         YAML::Node camera_node;
         camera_node["fov_degrees"] = camera->vertical_fov_degrees;
@@ -200,7 +199,7 @@ void write_entity_components(
         entity["camera"] = camera_node;
     }
 
-    if (const LightComponent* light = scene.registry().try_get<LightComponent>(handle))
+    if (const LightComponent* light = scene.try_get_component<LightComponent>(id))
     {
         YAML::Node light_node;
         light_node["type"] = std::string(light_type_name(light->type));
@@ -212,7 +211,7 @@ void write_entity_components(
         entity["light"] = light_node;
     }
 
-    if (const ColliderComponent* collider = scene.registry().try_get<ColliderComponent>(handle))
+    if (const ColliderComponent* collider = scene.try_get_component<ColliderComponent>(id))
     {
         YAML::Node collider_node;
         collider_node["type"] = std::string(collider_type_name(collider->type));
@@ -333,10 +332,9 @@ bool SceneSerializer::save(
         YAML::Node entities(YAML::NodeType::Sequence);
         for (EntityId id : scene.entities())
         {
-            const entt::entity handle = scene.entity_handle(id);
             YAML::Node entity;
             entity["id"] = id.value();
-            write_entity_components(entity, scene, id, handle);
+            write_entity_components(entity, scene, id);
             entities.push_back(entity);
         }
         scene_node["entities"] = entities;

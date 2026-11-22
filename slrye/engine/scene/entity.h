@@ -1,16 +1,12 @@
 ﻿#pragma once
 
 #include <optional>
-#include <stdexcept>
 #include <string>
-#include <utility>
 #include <vector>
-
-#include <entt/entity/registry.hpp>
 
 #include <engine/scene/entity_id.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 class Scene;
@@ -33,93 +29,46 @@ public:
     void mark_dirty();
 
     template<typename T, typename... Args>
-    T& add(Args&&... args)
-    {
-        if (!is_valid())
-        {
-            throw std::logic_error("Cannot add a component to an invalid entity");
-        }
-        if (registry_->all_of<T>(handle_))
-        {
-            throw std::logic_error("Entity already has the requested component");
-        }
-
-        T& component = registry_->emplace<T>(handle_, std::forward<Args>(args)...);
-        mark_dirty();
-        return component;
-    }
+    T& add(Args&&... args);
 
     template<typename T>
-    [[nodiscard]] bool has() const noexcept
-    {
-        return is_valid() && registry_->all_of<T>(handle_);
-    }
+    [[nodiscard]] bool has() const noexcept;
 
     template<typename T>
-    [[nodiscard]] T* try_get() noexcept
-    {
-        return has<T>() ? registry_->try_get<T>(handle_) : nullptr;
-    }
+    [[nodiscard]] T* try_get() noexcept;
 
     template<typename T>
-    [[nodiscard]] const T* try_get() const noexcept
-    {
-        return has<T>() ? registry_->try_get<T>(handle_) : nullptr;
-    }
+    [[nodiscard]] const T* try_get() const noexcept;
 
     template<typename T>
-    T& get()
-    {
-        T* component = try_get<T>();
-        if (component == nullptr)
-        {
-            throw std::out_of_range("Entity does not have the requested component");
-        }
-        return *component;
-    }
+    T& get();
 
     template<typename T>
-    const T& get() const
-    {
-        const T* component = try_get<T>();
-        if (component == nullptr)
-        {
-            throw std::out_of_range("Entity does not have the requested component");
-        }
-        return *component;
-    }
+    const T& get() const;
 
     template<typename T>
-    bool remove()
-    {
-        if (!has<T>())
-        {
-            return false;
-        }
+    bool remove();
 
-        registry_->remove<T>(handle_);
-        mark_dirty();
-        return true;
+    bool operator==(const Entity& other) const noexcept
+    {
+        return scene_ == other.scene_ && id_ == other.id_;
+    }
+
+    bool operator!=(const Entity& other) const noexcept
+    {
+        return !(*this == other);
     }
 
 private:
     friend class Scene;
 
-    Entity(
-        Scene* scene,
-        entt::registry* registry,
-        entt::entity handle,
-        EntityId id) noexcept
+    Entity(Scene* scene, EntityId id) noexcept
         : scene_(scene),
-          registry_(registry),
-          handle_(handle),
           id_(id)
     {
     }
 
     Scene* scene_ = nullptr;
-    entt::registry* registry_ = nullptr;
-    entt::entity handle_ = entt::null;
     EntityId id_;
 };
 

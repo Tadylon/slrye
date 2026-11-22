@@ -7,7 +7,7 @@
 
 // #include <editor/shell/editor_settings.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 inline constexpr std::uint32_t kEditorSettingsFormatVersion = 1;

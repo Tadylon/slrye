@@ -179,12 +179,11 @@ glm::vec3 entity_color(const Scene& scene, EntityId id, bool selected)
         return glm::vec3(0.95f, 0.55f, 0.16f);
     }
 
-    const entt::entity handle = scene.entity_handle(id);
-    if (scene.registry().all_of<LightComponent>(handle))
+    if (scene.has_component<LightComponent>(id))
     {
         return glm::vec3(0.95f, 0.78f, 0.28f);
     }
-    if (scene.registry().all_of<CameraComponent>(handle))
+    if (scene.has_component<CameraComponent>(id))
     {
         return glm::vec3(0.28f, 0.78f, 0.66f);
     }
@@ -216,9 +215,8 @@ SceneGeometry build_scene_geometry(
         const bool selected =
             selected_entity.has_value() && *selected_entity == entity_id;
         const glm::vec3 color = entity_color(scene, entity_id, selected);
-        const entt::entity handle = scene.entity_handle(entity_id);
         const ColliderComponent* collider =
-            scene.registry().try_get<ColliderComponent>(handle);
+            scene.try_get_component<ColliderComponent>(entity_id);
 
         if (collider == nullptr)
         {

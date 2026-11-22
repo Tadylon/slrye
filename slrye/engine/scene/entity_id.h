@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <functional>
 
-namespace slrye
+namespace slrye::engine
 {
 
 class EntityId

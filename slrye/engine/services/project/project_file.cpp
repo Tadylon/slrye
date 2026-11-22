@@ -8,7 +8,7 @@
 #include <engine/platform/file_io.h>
 #include <engine/platform/path_encoding.h>
 
-namespace slrye
+namespace slrye::engine
 {
 namespace
 {
@@ -49,7 +49,7 @@ std::optional<ProjectFile> load_project_file(
     }
 
     std::string contents;
-    if (!platform::read_text_file(path, contents, error))
+    if (!read_text_file(path, contents, error))
     {
         return std::nullopt;
     }

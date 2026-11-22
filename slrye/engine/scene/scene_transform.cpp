@@ -9,7 +9,7 @@
 #include <engine/scene/components.h>
 #include <engine/scene/scene.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 glm::mat4 local_transform_matrix(const TransformComponent& transform) noexcept
@@ -51,9 +51,8 @@ bool world_transform_matrix(
         }
         visited.push_back(current);
 
-        const entt::entity handle = scene.entity_handle(current);
         const TransformComponent* transform =
-            scene.registry().try_get<TransformComponent>(handle);
+            scene.try_get_component<TransformComponent>(current);
         if (transform == nullptr)
         {
             return false;

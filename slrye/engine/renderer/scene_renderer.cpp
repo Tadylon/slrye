@@ -260,7 +260,7 @@ bool SceneRenderer::Impl::create_shader_module(
     std::string* error)
 {
     std::string code;
-    if (!platform::read_text_file(path, code, error))
+    if (!read_text_file(path, code, error))
     {
         return false;
     }

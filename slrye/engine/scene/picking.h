@@ -3,9 +3,9 @@
 #include <optional>
 
 #include <engine/renderer/camera.h>
-// #include <engine/scene/entity_id.h>
+#include <engine/scene/entity_id.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 class Scene;

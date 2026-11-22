@@ -26,7 +26,7 @@ TEST_CASE("Scene creates entities with stable identity and default components")
     CHECK(transform.scale.z == 1.0f);
 }
 
-TEST_CASE("Entity components can be added, edited, queried, and removed through EnTT")
+TEST_CASE("Entity components can be added, edited, queried, and removed through Entity facade")
 {
     slrye::Scene scene;
     slrye::Entity camera_entity = scene.create_entity("Main Camera");
@@ -47,8 +47,8 @@ TEST_CASE("Entity components can be added, edited, queried, and removed through 
     CHECK_FALSE(camera_entity.remove<slrye::CameraComponent>());
 
     std::size_t named_entity_count = 0;
-    scene.registry().view<slrye::NameComponent>().each(
-        [&named_entity_count](slrye::NameComponent&)
+    scene.for_each<slrye::NameComponent>(
+        [&named_entity_count](slrye::EntityId, const slrye::NameComponent&)
         {
             ++named_entity_count;
         });
@@ -104,7 +104,11 @@ TEST_CASE("Destroying a parent destroys descendants and invalidates stale handle
     CHECK_FALSE(child.is_valid());
     CHECK_FALSE(grandchild.is_valid());
     CHECK(scene.entity_count() == 0);
-    CHECK(scene.registry().storage<slrye::NameComponent>().size() == 0);
+    std::size_t remaining_names = 0;
+    scene.for_each<slrye::NameComponent>([&remaining_names](slrye::EntityId, const slrye::NameComponent&) {
+        ++remaining_names;
+    });
+    CHECK(remaining_names == 0);
 
     slrye::Entity replacement = scene.create_entity("Replacement");
     CHECK_FALSE(root.is_valid());

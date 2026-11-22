@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <vector>
 
-namespace slrye
+namespace slrye::engine
 {
 
 inline constexpr std::size_t kDefaultRecentProjectLimit = 10;

@@ -12,7 +12,7 @@
 #include <windows.h>
 #endif
 
-namespace slrye
+namespace slrye::platform
 {
 namespace
 {

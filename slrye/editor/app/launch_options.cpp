@@ -8,7 +8,7 @@ namespace slrye
 ApplicationLaunchOptions parse_launch_options(int argc, char** argv)
 {
     ApplicationLaunchOptions options;
-    options.executable_path = platform::resolve_executable_path(argc, argv);
+    options.executable_path = resolve_executable_path(argc, argv);
 
     for (int index = 1; index < argc; ++index)
     {

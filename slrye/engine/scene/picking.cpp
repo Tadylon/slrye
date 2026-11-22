@@ -13,7 +13,7 @@
 #include <engine/scene/scene.h>
 #include <engine/scene/scene_transform.h>
 
-namespace slrye
+namespace slrye::engine
 {
 namespace
 {
@@ -156,14 +156,7 @@ std::optional<PickResult> pick_entity(const Scene& scene, const Ray& ray)
 
     for (EntityId entity_id : scene.entities())
     {
-        const entt::entity handle = scene.entity_handle(entity_id);
-        if (handle == entt::null)
-        {
-            continue;
-        }
-
-        const ColliderComponent* collider =
-            scene.registry().try_get<ColliderComponent>(handle);
+        const auto* collider = scene.try_get_component<ColliderComponent>(entity_id);
         if (collider != nullptr && !collider->enabled)
         {
             continue;

@@ -91,7 +91,7 @@ int Application::run()
     std::string viewport_error;
     if (!ui_.initialize_viewport(
             backend_.context(),
-            platform::assets_directory(launch_options_.executable_path) / "shaders",
+            assets_directory(launch_options_.executable_path) / "shaders",
             *active_scene_,
             &viewport_error))
     {
@@ -120,7 +120,7 @@ int Application::run()
 
 void Application::load_editor_preferences()
 {
-    settings_path_ = platform::user_config_directory() / "editor.yaml";
+    settings_path_ = user_config_directory() / "editor.yaml";
     std::error_code filesystem_error;
     if (!std::filesystem::exists(settings_path_, filesystem_error))
     {

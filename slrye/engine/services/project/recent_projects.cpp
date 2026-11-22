@@ -7,7 +7,7 @@
 
 #include <engine/platform/path_encoding.h>
 
-namespace slrye
+namespace slrye::engine
 {
 namespace
 {
@@ -34,7 +34,7 @@ std::filesystem::path normalize_path(const std::filesystem::path& path)
 
 std::string path_key(const std::filesystem::path& path)
 {
-    std::string key = platform::path_to_utf8(path);
+    std::string key = path_to_utf8(path);
     std::replace(key.begin(), key.end(), '\\', '/');
 #ifdef _WIN32
     std::transform(

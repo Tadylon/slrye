@@ -1,6 +1,6 @@
 ﻿#include <engine/platform/path_encoding.h>
 
-namespace slrye
+namespace slrye::platform
 {
 
 std::string path_to_utf8(const std::filesystem::path& path)

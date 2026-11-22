@@ -5,7 +5,7 @@
 #include <optional>
 #include <string>
 
-namespace slrye
+namespace slrye::engine
 {
 
 inline constexpr std::uint32_t kProjectFileFormatVersion = 1;

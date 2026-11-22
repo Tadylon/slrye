@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <string>
 
-namespace slrye
+namespace slrye::platform
 {
 namespace
 {

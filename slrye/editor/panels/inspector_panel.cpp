@@ -1,8 +1,9 @@
 ﻿#include <editor/panels/inspector_panel.h>
 
 #include <cstring>
-
+#define GLM_ENABLE_EXPERIMENTAL
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 
@@ -13,18 +14,18 @@
 namespace slrye
 {
 
-void InspectorPanel::set_scene(Scene* scene) noexcept
+void InspectorPanel::set_scene(engine::Scene* scene) noexcept
 {
     scene_ = scene;
     selected_entity_.reset();
 }
 
-void InspectorPanel::set_selected_entity(std::optional<EntityId> entity) noexcept
+void InspectorPanel::set_selected_entity(std::optional<engine::EntityId> entity) noexcept
 {
     selected_entity_ = entity;
 }
 
-std::optional<EntityId> InspectorPanel::selected_entity() const noexcept
+std::optional<engine::EntityId> InspectorPanel::selected_entity() const noexcept
 {
     return selected_entity_;
 }
@@ -59,7 +60,7 @@ void InspectorPanel::render()
         return;
     }
 
-    Entity entity = scene_->find(*selected_entity_);
+    engine::Entity entity = scene_->find(*selected_entity_);
     if (!entity.is_valid())
     {
         ImGui::TextDisabled("Selected entity is no longer valid.");
@@ -72,7 +73,7 @@ void InspectorPanel::render()
     ImGui::End();
 }
 
-void InspectorPanel::draw_components(Entity entity)
+void InspectorPanel::draw_components(engine::Entity entity)
 {
     // 1. 实体名称
     char name_buffer[256];
@@ -87,15 +88,15 @@ void InspectorPanel::draw_components(Entity entity)
     }
 
     ImGui::SameLine();
-    ImGui::TextDisabled("ID: %llu", static_cast<unsigned long long>(entity.id().value));
+    ImGui::TextDisabled("ID: %llu", static_cast<unsigned long long>(entity.id().value()));
     ImGui::Separator();
 
     // 2. Transform 组件
-    if (entity.has<TransformComponent>())
+    if (entity.has<engine::TransformComponent>())
     {
         if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            auto& tc = entity.get<TransformComponent>();
+            auto& tc = entity.get<engine::TransformComponent>();
             bool modified = false;
 
             modified |= draw_vec3_control("Position", tc.position, 0.0f);
@@ -117,19 +118,19 @@ void InspectorPanel::draw_components(Entity entity)
     }
 
     // 3. Light 组件
-    if (entity.has<LightComponent>())
+    if (entity.has<engine::LightComponent>())
     {
         bool remove_light = false;
         if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            auto& light = entity.get<LightComponent>();
+            auto& light = entity.get<engine::LightComponent>();
             bool modified = false;
 
             const char* light_types[] = {"Directional", "Point", "Spot"};
             int current_type = static_cast<int>(light.type);
             if (ImGui::Combo("Type", &current_type, light_types, 3))
             {
-                light.type = static_cast<LightType>(current_type);
+                light.type = static_cast<engine::LightType>(current_type);
                 modified = true;
             }
 
@@ -137,7 +138,7 @@ void InspectorPanel::draw_components(Entity entity)
             modified |= ImGui::DragFloat("Intensity", &light.intensity, 0.1f, 0.0f, 100.0f);
             modified |= ImGui::DragFloat("Range", &light.range, 0.5f, 0.1f, 1000.0f);
 
-            if (light.type == LightType::Spot)
+            if (light.type == engine::LightType::Spot)
             {
                 modified |= ImGui::DragFloat("Inner Cone", &light.inner_cone_degrees, 0.5f, 0.0f, 90.0f);
                 modified |= ImGui::DragFloat("Outer Cone", &light.outer_cone_degrees, 0.5f, 0.0f, 90.0f);
@@ -155,18 +156,18 @@ void InspectorPanel::draw_components(Entity entity)
         }
         if (remove_light)
         {
-            entity.remove<LightComponent>();
+            entity.remove<engine::LightComponent>();
             scene_->mark_dirty();
         }
     }
 
     // 4. Camera 组件
-    if (entity.has<CameraComponent>())
+    if (entity.has<engine::CameraComponent>())
     {
         bool remove_camera = false;
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            auto& camera = entity.get<CameraComponent>();
+            auto& camera = entity.get<engine::CameraComponent>();
             bool modified = false;
 
             modified |= ImGui::DragFloat("Vertical FOV", &camera.vertical_fov_degrees, 0.5f, 1.0f, 179.0f);
@@ -186,37 +187,37 @@ void InspectorPanel::draw_components(Entity entity)
         }
         if (remove_camera)
         {
-            entity.remove<CameraComponent>();
+            entity.remove<engine::CameraComponent>();
             scene_->mark_dirty();
         }
     }
 
     // 5. Collider 组件
-    if (entity.has<ColliderComponent>())
+    if (entity.has<engine::ColliderComponent>())
     {
         bool remove_collider = false;
         if (ImGui::CollapsingHeader("Collider", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            auto& collider = entity.get<ColliderComponent>();
+            auto& collider = entity.get<engine::ColliderComponent>();
             bool modified = false;
 
             const char* collider_types[] = {"Box", "Sphere", "Capsule"};
             int current_type = static_cast<int>(collider.type);
             if (ImGui::Combo("Collider Type", &current_type, collider_types, 3))
             {
-                collider.type = static_cast<ColliderType>(current_type);
+                collider.type = static_cast<engine::ColliderType>(current_type);
                 modified = true;
             }
 
-            if (collider.type == ColliderType::Box)
+            if (collider.type == engine::ColliderType::Box)
             {
                 modified |= draw_vec3_control("Half Extents", collider.half_extents, 0.5f);
             }
-            else if (collider.type == ColliderType::Sphere)
+            else if (collider.type == engine::ColliderType::Sphere)
             {
                 modified |= ImGui::DragFloat("Radius", &collider.radius, 0.05f, 0.01f, 100.0f);
             }
-            else if (collider.type == ColliderType::Capsule)
+            else if (collider.type == engine::ColliderType::Capsule)
             {
                 modified |= ImGui::DragFloat("Radius", &collider.radius, 0.05f, 0.01f, 100.0f);
                 modified |= ImGui::DragFloat("Height", &collider.height, 0.05f, 0.01f, 100.0f);
@@ -236,7 +237,7 @@ void InspectorPanel::draw_components(Entity entity)
         }
         if (remove_collider)
         {
-            entity.remove<ColliderComponent>();
+            entity.remove<engine::ColliderComponent>();
             scene_->mark_dirty();
         }
     }
@@ -250,27 +251,27 @@ void InspectorPanel::draw_components(Entity entity)
 
     if (ImGui::BeginPopup("AddComponentPopup"))
     {
-        if (!entity.has<TransformComponent>() && ImGui::MenuItem("Transform"))
+        if (!entity.has<engine::TransformComponent>() && ImGui::MenuItem("Transform"))
         {
-            entity.add<TransformComponent>();
+            entity.add<engine::TransformComponent>();
             scene_->mark_dirty();
             ImGui::CloseCurrentPopup();
         }
-        if (!entity.has<LightComponent>() && ImGui::MenuItem("Light"))
+        if (!entity.has<engine::LightComponent>() && ImGui::MenuItem("Light"))
         {
-            entity.add<LightComponent>();
+            entity.add<engine::LightComponent>();
             scene_->mark_dirty();
             ImGui::CloseCurrentPopup();
         }
-        if (!entity.has<CameraComponent>() && ImGui::MenuItem("Camera"))
+        if (!entity.has<engine::CameraComponent>() && ImGui::MenuItem("Camera"))
         {
-            entity.add<CameraComponent>();
+            entity.add<engine::CameraComponent>();
             scene_->mark_dirty();
             ImGui::CloseCurrentPopup();
         }
-        if (!entity.has<ColliderComponent>() && ImGui::MenuItem("Collider"))
+        if (!entity.has<engine::ColliderComponent>() && ImGui::MenuItem("Collider"))
         {
-            entity.add<ColliderComponent>();
+            entity.add<engine::ColliderComponent>();
             scene_->mark_dirty();
             ImGui::CloseCurrentPopup();
         }

@@ -16,3 +16,9 @@ class Scene;
     glm::mat4& result) noexcept;
 
 }
+
+namespace slrye
+{
+using engine::local_transform_matrix;
+using engine::world_transform_matrix;
+}

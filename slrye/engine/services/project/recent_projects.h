@@ -29,3 +29,9 @@ private:
 };
 
 }
+
+namespace slrye
+{
+using engine::RecentProjects;
+using engine::kDefaultRecentProjectLimit;
+}

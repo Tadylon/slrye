@@ -31,3 +31,13 @@ bool save_project_file(
     const std::filesystem::path& scene_path);
 
 }
+
+namespace slrye
+{
+using engine::ProjectFile;
+using engine::kProjectFileFormatVersion;
+using engine::kProjectFileExtension;
+using engine::load_project_file;
+using engine::save_project_file;
+using engine::resolve_project_scene_path;
+}

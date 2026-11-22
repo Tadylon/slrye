@@ -34,3 +34,8 @@ struct VulkanContext
 };
 
 }
+
+namespace slrye
+{
+using engine::VulkanContext;
+}

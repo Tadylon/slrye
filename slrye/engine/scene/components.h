@@ -71,3 +71,15 @@ struct ColliderComponent
 };
 
 }
+
+namespace slrye
+{
+using engine::NameComponent;
+using engine::TransformComponent;
+using engine::HierarchyComponent;
+using engine::CameraComponent;
+using engine::LightType;
+using engine::LightComponent;
+using engine::ColliderType;
+using engine::ColliderComponent;
+}

@@ -40,3 +40,8 @@ private:
 };
 
 }
+
+namespace slrye
+{
+using engine::VulkanBackend;
+}

@@ -228,3 +228,8 @@ inline bool Entity::remove()
 }
 
 }
+
+namespace slrye
+{
+using engine::Scene;
+}

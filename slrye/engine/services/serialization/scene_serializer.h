@@ -27,3 +27,10 @@ public:
 };
 
 }
+
+namespace slrye
+{
+using engine::SceneSerializer;
+using engine::kSceneFormatVersion;
+using engine::kSceneFileExtension;
+}

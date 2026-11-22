@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <filesystem>
 #include <optional>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -9,6 +11,8 @@
 
 namespace slrye
 {
+
+inline constexpr std::uint32_t kEditorSettingsFormatVersion = 1;
 
 enum class EditorTheme
 {
@@ -31,4 +35,22 @@ struct EditorSettings
     std::vector<std::filesystem::path> recent_projects;
 };
 
+[[nodiscard]] std::optional<EditorSettings> load_editor_settings(
+    const std::filesystem::path& path,
+    std::string* error = nullptr);
+
+bool save_editor_settings(
+    const std::filesystem::path& path,
+    const EditorSettings& settings,
+    std::string* error = nullptr);
+
+}
+
+namespace slrye::engine
+{
+using slrye::EditorTheme;
+using slrye::EditorSettings;
+using slrye::kEditorSettingsFormatVersion;
+using slrye::load_editor_settings;
+using slrye::save_editor_settings;
 }

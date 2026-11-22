@@ -110,7 +110,7 @@ void SceneHierarchyPanel::draw_entity_node(engine::EntityId id)
     }
 
     const bool opened = ImGui::TreeNodeEx(
-        reinterpret_cast<void*>(static_cast<std::uintptr_t>(id.value)),
+        reinterpret_cast<void*>(static_cast<std::uintptr_t>(id.value())),
         flags,
         "%s",
         name.c_str());

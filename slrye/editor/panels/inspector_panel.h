@@ -7,18 +7,21 @@
 
 #include <engine/scene/entity_id.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 class Scene;
 class Entity;
+}
+
+namespace slrye {
 
 class InspectorPanel
 {
 public:
     InspectorPanel() = default;
 
-    void set_scene(Scene* scene) noexcept;
+    void set_scene(engine::Scene* scene) noexcept;
     void render();
 
     void set_selected_entity(std::optional<engine::EntityId> entity) noexcept;
@@ -28,10 +31,10 @@ public:
     [[nodiscard]] bool is_visible() const noexcept;
 
 private:
-    void draw_components(Entity entity);
+    void draw_components(engine::Entity entity);
     static bool draw_vec3_control(const char* label, glm::vec3& values, float reset_value = 0.0f);
 
-    Scene* scene_ = nullptr;
+    engine::Scene* scene_ = nullptr;
     std::optional<engine::EntityId> selected_entity_;
     bool visible_ = true;
 };

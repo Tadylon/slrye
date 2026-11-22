@@ -54,3 +54,9 @@ struct EntityIdHash
 };
 
 }
+
+namespace slrye
+{
+using engine::EntityId;
+using engine::EntityIdHash;
+}

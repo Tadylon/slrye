@@ -16,11 +16,14 @@
 #include <editor/panels/view.h>
 #include <editor/panels/viewport.h>
 
-namespace slrye
+namespace slrye::engine
 {
 
 class Scene;
 
+}
+
+namespace slrye {
 class EditorUI
 {
 public:
@@ -32,11 +35,11 @@ public:
     EditorUI& operator=(EditorUI&&) = delete;
 
     void initialize(EditorSettings& settings);
-    void set_scene(Scene* scene);
+    void set_scene(engine::Scene* scene);
     bool initialize_viewport(
-        const VulkanContext& context,
+        const engine::VulkanContext& context,
         const std::filesystem::path& shader_directory,
-        Scene& scene,
+        engine::Scene& scene,
         std::string* error = nullptr);
     ImVec4 render();
     void shutdown();
@@ -72,7 +75,7 @@ private:
     ThemeManager theme_manager_;
     EditorSettings* settings_ = nullptr;
     EditorViewState view_state_;
-    Scene* scene_ = nullptr;
+    engine::Scene* scene_ = nullptr;
     std::optional<engine::EntityId> selected_entity_;
 
     Viewport viewport_;

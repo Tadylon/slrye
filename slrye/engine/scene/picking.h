@@ -21,3 +21,9 @@ struct PickResult
     const Ray& ray);
 
 }
+
+namespace slrye
+{
+using engine::PickResult;
+using engine::pick_entity;
+}

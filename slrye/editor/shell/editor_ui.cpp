@@ -37,7 +37,7 @@ void EditorUI::initialize(EditorSettings& settings)
     theme_manager_.apply(settings.theme);
 }
 
-void EditorUI::set_scene(Scene* scene)
+void EditorUI::set_scene(engine::Scene* scene)
 {
     scene_ = scene;
     selected_entity_.reset();
@@ -50,9 +50,9 @@ void EditorUI::set_scene(Scene* scene)
 }
 
 bool EditorUI::initialize_viewport(
-    const VulkanContext& context,
+    const engine::VulkanContext& context,
     const std::filesystem::path& shader_directory,
-    Scene& scene,
+    engine::Scene& scene,
     std::string* error)
 {
     set_scene(&scene);

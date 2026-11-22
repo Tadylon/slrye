@@ -58,3 +58,9 @@ private:
 };
 
 }
+
+namespace slrye
+{
+using engine::Ray;
+using engine::PerspectiveCamera;
+}

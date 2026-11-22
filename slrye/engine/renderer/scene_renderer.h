@@ -51,3 +51,8 @@ private:
 };
 
 }
+
+namespace slrye
+{
+using engine::SceneRenderer;
+}

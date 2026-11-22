@@ -73,3 +73,8 @@ private:
 };
 
 }
+
+namespace slrye
+{
+using engine::Entity;
+}

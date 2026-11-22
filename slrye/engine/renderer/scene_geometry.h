@@ -30,3 +30,10 @@ struct SceneGeometry
     bool show_grid = true);
 
 }
+
+namespace slrye
+{
+using engine::SceneVertex;
+using engine::SceneGeometry;
+using engine::build_scene_geometry;
+}

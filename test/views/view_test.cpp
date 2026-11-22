@@ -1,4 +1,4 @@
-#include <views/view.h>
+﻿#include <editor/panels/view.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <imgui_internal.h>

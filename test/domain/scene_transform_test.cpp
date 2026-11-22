@@ -1,10 +1,10 @@
-#include <domain/scene_transform.h>
+﻿#include <engine/scene/scene_transform.h>
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <glm/vec4.hpp>
 
-#include <domain/scene.h>
+#include <engine/scene/scene.h>
 
 TEST_CASE("World transforms compose parent and child local transforms")
 {

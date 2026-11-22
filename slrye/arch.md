@@ -1,68 +1,88 @@
+# Slrye Architecture
 
-
-```
+```mermaid
 flowchart TB
-    MAIN[main] --> APP[Application 单例]
+    MAIN[editor/app/main.cpp] --> APP[Application]
 
-    subgraph Infrastructure[基础设施层 core]
-        VK[VulkanBackend 单例]
-        IMGUI[ImGuiBackend 单例]
-        CTX[VulkanContext]
-        VK --> IMGUI
-        VK --> CTX
+    subgraph EditorLayer[Editor 层: editor/]
+        APP --> UI[EditorUI Shell]
+        APP --> IMGUI_BK[ImGuiBackend]
+        
+        UI *-- THEME[ThemeManager / Styles]
+        UI *-- PANELS[Editor Panels]
+        
+        subgraph PanelsGroup[panels/]
+            VIEWPORT[Viewport Panel]
+            HIERARCHY[SceneHierarchy Panel]
+            INSPECTOR[Inspector Panel]
+            CONSOLE[Console Panel]
+            CAMCTRL[CameraController]
+            VIEWPORT *-- CAMCTRL
+        end
+        
+        PANELS --> VIEWPORT
+        PANELS --> HIERARCHY
+        PANELS --> INSPECTOR
+        PANELS --> CONSOLE
     end
 
-    subgraph Editor[编辑器层 ui / views]
-        UI[EditorUI 单例]
-        THEME[ThemeManager]
-        STATE[EditorViewState]
-        VIEWPORT[Viewport]
-        CAMCTRL[CameraController]
-        CAMERA[PerspectiveCamera]
-        RENDERER[SceneRenderer]
+    subgraph EngineLayer[Engine 运行时层: engine/]
+        subgraph RHIGroup[rhi/]
+            VK[VulkanBackend]
+            CTX[VulkanContext]
+            VMA[VMA Allocator / vma_resources]
+            VK --> CTX
+            VK --> VMA
+        end
 
-        UI *-- THEME
-        UI *-- STATE
-        UI *-- VIEWPORT
-        VIEWPORT *-- CAMCTRL
-        VIEWPORT *-- CAMERA
-        VIEWPORT *-- RENDERER
+        subgraph RendererGroup[renderer/]
+            RENDERER[SceneRenderer]
+            CAMERA[PerspectiveCamera]
+            GEOMETRY[SceneGeometry]
+            RENDERER --> GEOMETRY
+            RENDERER --> CTX
+            RENDERER --> VMA
+        end
+
+        subgraph SceneGroup[scene/]
+            SCENE[Scene]
+            ENTITY[Entity]
+            ID[EntityId]
+            COMPONENTS[Components / EnTT Registry]
+            TRANSFORM[SceneTransform]
+            PICKING[Scene Query / Picking]
+            
+            SCENE *-- COMPONENTS
+            SCENE *-- ENTITY
+            SCENE *-- TRANSFORM
+            PICKING ..-> SCENE
+        end
+
+        subgraph ServicesGroup[services/]
+            PROJECT[ProjectFile]
+            RECENT[RecentProjects]
+            SERIALIZER[SceneSerializer]
+            SETTINGS_SVC[EditorSettings YAML]
+        end
+
+        subgraph CorePlatform[core / platform / plugin]
+            LOG[Log / spdlog]
+            PLATFORM[Paths / FileIO]
+            PLUGIN[PluginManager]
+        end
     end
 
-    subgraph Domain[领域层 domain]
-        SCENE[Scene]
-        ENTITY[Entity]
-        ID[EntityId]
-        COMPONENTS[Components / EntT Registry]
-        SCENE *-- ENTITY
-        SCENE *-- ID
-        SCENE *-- COMPONENTS
-        ENTITY --> SCENE
-    end
-
-    subgraph Services[服务层 services]
-        PLUGIN[PluginManager 单例]
-        SERIALIZER[SceneSerializer]
-        PROJECT[ProjectFile]
-        SETTINGS[EditorSettings]
-        RECENT[RecentProjects]
-    end
-
+    %% Editor 依赖 Engine，Engine 绝不依赖 Editor
     APP --> VK
-    APP --> UI
-    APP --> PLUGIN
     APP *-- SCENE
-    APP *-- SETTINGS
-    APP *-- RECENT
     APP ..-> PROJECT
     APP ..-> SERIALIZER
-
-    UI --> VK
-    VIEWPORT --> SCENE
-    RENDERER --> CTX
+    
+    VIEWPORT --> RENDERER
+    VIEWPORT ..-> SCENE
+    HIERARCHY ..-> SCENE
+    INSPECTOR ..-> SCENE
     RENDERER ..-> SCENE
     RENDERER ..-> CAMERA
+    IMGUI_BK --> CTX
 ```
-
-
-

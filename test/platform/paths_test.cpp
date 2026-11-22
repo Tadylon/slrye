@@ -1,5 +1,5 @@
-#include <platform/paths.h>
-#include <platform/path_encoding.h>
+﻿#include <engine/platform/paths.h>
+#include <engine/platform/path_encoding.h>
 
 #include <catch2/catch_test_macros.hpp>
 

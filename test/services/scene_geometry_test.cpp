@@ -1,10 +1,10 @@
-#include <services/rendering/scene_geometry.h>
+﻿#include <engine/renderer/scene_geometry.h>
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <algorithm>
 
-#include <domain/scene.h>
+#include <engine/scene/scene.h>
 
 TEST_CASE("Scene geometry always contains a ground grid")
 {

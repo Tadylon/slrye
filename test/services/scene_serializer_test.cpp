@@ -1,4 +1,4 @@
-#include <services/serialization/scene_serializer.h>
+﻿#include <engine/services/serialization/scene_serializer.h>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <string>
 
-#include <domain/scene.h>
+#include <engine/scene/scene.h>
 #include <support/temporary_directory.h>
 
 TEST_CASE("Scene serializer preserves stable ids, components, and hierarchy")

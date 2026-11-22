@@ -1,12 +1,12 @@
-#include <services/rendering/scene_renderer.h>
+﻿#include <engine/renderer/scene_renderer.h>
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <string>
 
-#include <core/vulkan_context.h>
-#include <domain/camera.h>
-#include <domain/scene.h>
+#include <engine/rhi/vulkan/vulkan_context.h>
+#include <engine/renderer/camera.h>
+#include <engine/scene/scene.h>
 
 TEST_CASE("Scene renderer rejects missing Vulkan resources without throwing")
 {

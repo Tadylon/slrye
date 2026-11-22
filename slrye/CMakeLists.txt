@@ -11,41 +11,44 @@ find_package(Vulkan REQUIRED)
 find_package(vk-bootstrap CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
-set(SLRYE_RUNTIME_SOURCES
-    app/application.cpp
-    app/launch_options.cpp
-    core/imgui_backend.cpp
-    core/vulkan_backend.cpp
-    domain/camera.cpp
-    domain/editor_settings.cpp
-    domain/scene.cpp
-    domain/scene_transform.cpp
-    platform/file_io.cpp
-    platform/path_encoding.cpp
-    platform/paths.cpp
-    # plugin/plugin_manager.cpp
-    # plugin/plugin_manifest.cpp
-    services/project/project_file.cpp
-    services/project/recent_projects.cpp
-    services/picking/picking.cpp
-    services/rendering/scene_geometry.cpp
-    services/rendering/scene_renderer.cpp
-    services/serialization/scene_serializer.cpp
-    services/settings/editor_settings.cpp
-    ui/editor_ui.cpp
-    ui/theme_manager.cpp
-    ui/styles/spectrum.cpp
-    ui/styles/style.cpp
-    views/camera_controller.cpp
-    views/console_panel.cpp
-    views/inspector_panel.cpp
-    views/scene_hierarchy_panel.cpp
-    views/view.cpp
-    views/viewport.cpp
+set(SLRYE_ENGINE_SOURCES
+    engine/core/log.cpp
+    engine/platform/file_io.cpp
+    engine/platform/path_encoding.cpp
+    engine/platform/paths.cpp
+    engine/renderer/camera.cpp
+    engine/renderer/scene_geometry.cpp
+    engine/renderer/scene_renderer.cpp
+    engine/rhi/vulkan/vulkan_backend.cpp
+    engine/scene/picking.cpp
+    engine/scene/scene_transform.cpp
+    engine/scene/scene.cpp
+    engine/services/project/project_file.cpp
+    engine/services/project/recent_projects.cpp
+    engine/services/serialization/scene_serializer.cpp
+    engine/services/settings/editor_settings.cpp
+)
+
+set(SLRYE_EDITOR_SOURCES
+    editor/app/application.cpp
+    editor/app/launch_options.cpp
+    editor/backend/imgui_backend.cpp
+    editor/shell/editor_settings.cpp
+    editor/shell/editor_ui.cpp
+    editor/shell/theme_manager.cpp
+    editor/shell/styles/spectrum.cpp
+    editor/shell/styles/style.cpp
+    editor/panels/camera_controller.cpp
+    editor/panels/console_panel.cpp
+    editor/panels/inspector_panel.cpp
+    editor/panels/scene_hierarchy_panel.cpp
+    editor/panels/view.cpp
+    editor/panels/viewport.cpp
 )
 
 add_library(slrye_runtime STATIC
-    ${SLRYE_RUNTIME_SOURCES}
+    ${SLRYE_ENGINE_SOURCES}
+    ${SLRYE_EDITOR_SOURCES}
 )
 
 target_link_libraries(slrye_runtime PUBLIC
@@ -56,16 +59,18 @@ target_link_libraries(slrye_runtime PUBLIC
     EnTT::EnTT
     spdlog::spdlog
     yaml-cpp::yaml-cpp
-    vk-bootstrap::vk-bootstrap          # 新增
-    GPUOpen::VulkanMemoryAllocator      # 新增
+    vk-bootstrap::vk-bootstrap
+    GPUOpen::VulkanMemoryAllocator
 )
 
 target_include_directories(slrye_runtime
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/engine
+        ${CMAKE_CURRENT_SOURCE_DIR}/editor
 )
 
-add_executable(slrye app/main.cpp)
+add_executable(slrye editor/app/main.cpp)
 target_link_libraries(slrye PRIVATE slrye_runtime)
 
 add_custom_command(TARGET slrye POST_BUILD

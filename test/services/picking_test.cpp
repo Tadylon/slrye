@@ -1,9 +1,9 @@
-#include <services/picking/picking.h>
+﻿#include <engine/scene/picking.h>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
-#include <domain/scene.h>
+#include <engine/scene/scene.h>
 
 TEST_CASE("Picking returns the closest entity along a ray")
 {

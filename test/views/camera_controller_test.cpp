@@ -1,4 +1,4 @@
-#include <views/camera_controller.h>
+﻿#include <editor/panels/camera_controller.h>
 
 #include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>

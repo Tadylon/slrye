@@ -26,11 +26,11 @@ slrye/
 │── slrye/
     |── app/                 Application、启动参数、主循环
     |── core/                Vulkan/GLFW 后端、窗口和交换链封装
+    |—— debug/               放置有关imgui相关的内容
     |── ui/                  菜单栏、DockSpace、状态栏、主题
     |── views/               具体页面或工具面板
     |── domain/              业务模型和核心规则
     |── services/            文件、配置、日志、后台任务
-    |── platform/            Windows 资源、文件关联、托盘等
 ```
 
 

@@ -12,7 +12,7 @@ find_package(Vulkan REQUIRED)
 set(SLRYE_RUNTIME_SOURCES
     app/application.cpp
     app/launch_options.cpp
-    core/imgui_backend.cpp
+    debug/imgui_backend.cpp
     core/vulkan_backend.cpp
     domain/camera.cpp
     domain/editor_settings.cpp

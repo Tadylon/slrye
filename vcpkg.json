@@ -8,6 +8,9 @@
     "entt",
     "spdlog",
     "yaml-cpp",
+    "miniaudio",
+    "vk-bootstrap",
+    "vulkan-memory-allocator",
     {
       "name": "imgui",
       "features": [

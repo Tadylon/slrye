@@ -8,11 +8,13 @@ find_package(EnTT CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
+find_package(vk-bootstrap CONFIG REQUIRED)
+find_package(VulkanMemoryAllocator CONFIG REQUIRED)
 
 set(SLRYE_RUNTIME_SOURCES
     app/application.cpp
     app/launch_options.cpp
-    debug/imgui_backend.cpp
+    core/imgui_backend.cpp
     core/vulkan_backend.cpp
     domain/camera.cpp
     domain/editor_settings.cpp
@@ -28,6 +30,7 @@ set(SLRYE_RUNTIME_SOURCES
     services/picking/picking.cpp
     services/rendering/scene_geometry.cpp
     services/rendering/scene_renderer.cpp
+    # services/rendering/vam_resources.h
     services/serialization/scene_serializer.cpp
     services/settings/editor_settings.cpp
     ui/editor_ui.cpp
@@ -51,6 +54,8 @@ target_link_libraries(slrye_runtime PUBLIC
     EnTT::EnTT
     spdlog::spdlog
     yaml-cpp::yaml-cpp
+    vk-bootstrap::vk-bootstrap          # 新增
+    GPUOpen::VulkanMemoryAllocator      # 新增
 )
 
 target_include_directories(slrye_runtime

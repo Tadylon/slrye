@@ -15,7 +15,7 @@ option(SLRYE_BUILD_EXAMPLES "Build examples" ON )
 option(SLRYE_BUILD_TESTS    "Build tests"    ON )
 option(SLRYE_BUILD_TOOLS    "Build tools"    OFF)
 option(SLRYE_BUILD_PLUGINS  "Build bundled plugins" ON)
-option(SLRYE_ENABLE_CONSOLE "Keep a console window attached to the editor executable" ON)
+option(SLRYE_ENABLE_CONSOLE "Keep console executable" ON)
 
 add_subdirectory(slrye)
 

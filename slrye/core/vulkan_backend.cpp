@@ -192,185 +192,76 @@ VulkanBackend::~VulkanBackend()
 
 bool VulkanBackend::initialize(const char* title, int width, int height)
 {
-    if (initialized_)
-    {
-        return false;
-    }
-
-    glfwSetErrorCallback(glfw_error_callback);
-    if (!glfwInit())
-    {
-        return false;
-    }
-    glfw_initialized_ = true;
-
+    // 1. 初始化 GLFW
+    glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
-
-    float content_scale_x = 1.0f;
-    float content_scale_y = 1.0f;
-    glfwGetMonitorContentScale(
-        glfwGetPrimaryMonitor(),
-        &content_scale_x,
-        &content_scale_y);
-    window_ = glfwCreateWindow(
-        static_cast<int>(static_cast<float>(width) * std::max(content_scale_x, 1.0f)),
-        static_cast<int>(static_cast<float>(height) * std::max(content_scale_y, 1.0f)),
-        title,
-        nullptr,
-        nullptr);
-    if (window_ == nullptr)
-    {
-        shutdown();
-        return false;
-    }
-
-    if (!glfwVulkanSupported())
-    {
-        std::fprintf(stderr, "GLFW: Vulkan is not supported\n");
-        shutdown();
-        return false;
-    }
-
-    std::uint32_t extension_count = 0;
-    const char** required_extensions =
-        glfwGetRequiredInstanceExtensions(&extension_count);
-    if (required_extensions == nullptr)
-    {
-        shutdown();
-        return false;
-    }
-
-    std::vector<const char*> extensions(
-        required_extensions,
-        required_extensions + extension_count);
-    std::vector<const char*> layers;
+    window_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
+    // 2. 使用 vk-bootstrap 构建 Instance（启用现代 Debug Utils）
+    vkb::InstanceBuilder instance_builder;
+    auto instance_ret = instance_builder
+        .set_app_name(title)
+        .set_engine_name("Slrye")
+        .require_api_version(1, 3, 0) // 或 1.2.0
 #if defined(_DEBUG)
-    constexpr const char* validation_layer = "VK_LAYER_KHRONOS_validation";
-    if (has_layer(validation_layer))
-    {
-        layers.push_back(validation_layer);
-        if (has_instance_extension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME))
-        {
-            extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-        }
-    }
+        .request_validation_layers(true)
+        .use_default_debug_messenger()
 #endif
-
-    VkApplicationInfo application_info{};
-    application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    application_info.pApplicationName = title;
-    application_info.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
-    application_info.pEngineName = "Slrye";
-    application_info.engineVersion = VK_MAKE_VERSION(0, 1, 0);
-    application_info.apiVersion = VK_API_VERSION_1_0;
-
-    VkInstanceCreateInfo instance_info{};
-    instance_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    instance_info.pApplicationInfo = &application_info;
-    instance_info.enabledExtensionCount = static_cast<std::uint32_t>(extensions.size());
-    instance_info.ppEnabledExtensionNames = extensions.data();
-    instance_info.enabledLayerCount = static_cast<std::uint32_t>(layers.size());
-    instance_info.ppEnabledLayerNames = layers.data();
-    if (!check_result(
-            vkCreateInstance(&instance_info, context_.allocator, &context_.instance),
-            "vkCreateInstance"))
+        .build();
+    if (!instance_ret)
     {
-        shutdown();
+        std::fprintf(stderr, "Failed to create Vulkan instance: %s\n", instance_ret.error().message().c_str());
         return false;
     }
-
-#if defined(_DEBUG)
-    if (std::find(layers.begin(), layers.end(), validation_layer) != layers.end())
+    impl_->vkb_instance = instance_ret.value();
+    context_.instance = impl_->vkb_instance.instance;
+    // 3. 创建 Window Surface
+    if (glfwCreateWindowSurface(context_.instance, window_, nullptr, &context_.surface) != VK_SUCCESS)
     {
-        const auto create_debug_report =
-            reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
-                vkGetInstanceProcAddr(context_.instance, "vkCreateDebugReportCallbackEXT"));
-        if (create_debug_report != nullptr)
-        {
-            VkDebugReportCallbackCreateInfoEXT callback_info{};
-            callback_info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-            callback_info.flags =
-                VK_DEBUG_REPORT_ERROR_BIT_EXT |
-                VK_DEBUG_REPORT_WARNING_BIT_EXT |
-                VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
-            callback_info.pfnCallback = debug_report_callback;
-            check_result(
-                create_debug_report(
-                    context_.instance,
-                    &callback_info,
-                    context_.allocator,
-                    &debug_report_),
-                "vkCreateDebugReportCallbackEXT");
-        }
-    }
-#endif
-
-    if (!check_result(
-            glfwCreateWindowSurface(
-                context_.instance,
-                window_,
-                context_.allocator,
-                &context_.surface),
-            "glfwCreateWindowSurface"))
-    {
-        shutdown();
         return false;
     }
-
-    const std::optional<VkPhysicalDevice> physical_device =
-        select_physical_device(
-            context_.instance,
-            context_.surface,
-            context_.graphics_queue_family);
-    if (!physical_device.has_value())
+    // 4. 使用 vk-bootstrap 选择最优物理设备（优先选择独立显卡，自动满足 Swapchain 扩展）
+    vkb::PhysicalDeviceSelector selector{impl_->vkb_instance};
+    auto phys_ret = selector
+        .set_surface(context_.surface)
+        .set_minimum_version(1, 2)
+        .prefer_gpu_device_type(vkb::PreferredDeviceType::discrete)
+        .add_required_extension(VK_KHR_SWAPCHAIN_EXTENSION_NAME)
+        .select();
+    if (!phys_ret)
     {
-        std::fprintf(stderr, "No Vulkan device supports graphics, presentation, and swapchain\n");
-        shutdown();
+        std::fprintf(stderr, "Failed to select physical device: %s\n", phys_ret.error().message().c_str());
         return false;
     }
-    context_.physical_device = *physical_device;
-
-    std::vector<const char*> device_extensions{VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-#if defined(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)
-    if (has_device_extension(
-            context_.physical_device,
-            VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME))
+    vkb::PhysicalDevice vkb_phys_device = phys_ret.value();
+    context_.physical_device = vkb_phys_device.physical_device;
+    // 5. 使用 vk-bootstrap 创建逻辑设备
+    vkb::DeviceBuilder device_builder{vkb_phys_device};
+    auto dev_ret = device_builder.build();
+    if (!dev_ret)
     {
-        device_extensions.push_back(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
-    }
-#endif
-
-    constexpr float queue_priority = 1.0f;
-    VkDeviceQueueCreateInfo queue_info{};
-    queue_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queue_info.queueFamilyIndex = context_.graphics_queue_family;
-    queue_info.queueCount = 1;
-    queue_info.pQueuePriorities = &queue_priority;
-
-    VkDeviceCreateInfo device_info{};
-    device_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    device_info.queueCreateInfoCount = 1;
-    device_info.pQueueCreateInfos = &queue_info;
-    device_info.enabledExtensionCount = static_cast<std::uint32_t>(device_extensions.size());
-    device_info.ppEnabledExtensionNames = device_extensions.data();
-    if (!check_result(
-            vkCreateDevice(
-                context_.physical_device,
-                &device_info,
-                context_.allocator,
-                &context_.device),
-            "vkCreateDevice"))
-    {
-        shutdown();
+        std::fprintf(stderr, "Failed to create logical device: %s\n", dev_ret.error().message().c_str());
         return false;
     }
-
-    vkGetDeviceQueue(
-        context_.device,
-        context_.graphics_queue_family,
-        0,
-        &context_.graphics_queue);
+    impl_->vkb_device = dev_ret.value();
+    context_.device = impl_->vkb_device.device;
+    // 获取图形与呈现队列
+    context_.graphics_queue = impl_->vkb_device.get_queue(vkb::QueueType::graphics).value();
+    context_.graphics_queue_family = impl_->vkb_device.get_queue_index(vkb::QueueType::graphics).value();
+    context_.present_queue = impl_->vkb_device.get_queue(vkb::QueueType::present).value();
+    context_.present_queue_family = impl_->vkb_device.get_queue_index(vkb::QueueType::present).value();
+    // 6. 初始化 VMA (Vulkan Memory Allocator)
+    VmaAllocatorCreateInfo allocator_info{};
+    allocator_info.vulkanApiVersion = VK_API_VERSION_1_3;
+    allocator_info.physicalDevice = context_.physical_device;
+    allocator_info.device = context_.device;
+    allocator_info.instance = context_.instance;
+    // 如果启用了 Buffer Device Address 等特性，可以配置 flags:
+    // allocator_info.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+    if (vmaCreateAllocator(&allocator_info, &context_.vma_allocator) != VK_SUCCESS)
+    {
+        std::fprintf(stderr, "Failed to initialize VMA allocator\n");
+        return false;
+    }
     initialized_ = true;
     return true;
 }
@@ -402,63 +293,34 @@ void VulkanBackend::shutdown()
     {
         vkDeviceWaitIdle(context_.device);
     }
-
+    // 先销毁 VMA 分配器
+    if (context_.vma_allocator != VK_NULL_HANDLE)
+    {
+        vmaDestroyAllocator(context_.vma_allocator);
+        context_.vma_allocator = VK_NULL_HANDLE;
+    }
+    // 使用 vkb 安全销毁设备与实例
     if (context_.device != VK_NULL_HANDLE)
     {
-        vkDestroyDevice(context_.device, context_.allocator);
+        vkb::destroy_device(impl_->vkb_device);
         context_.device = VK_NULL_HANDLE;
     }
-
-#if defined(_DEBUG)
-    if (context_.instance != VK_NULL_HANDLE && debug_report_ != VK_NULL_HANDLE)
+    if (context_.surface != VK_NULL_HANDLE)
     {
-        const auto destroy_debug_report =
-            reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
-                vkGetInstanceProcAddr(context_.instance, "vkDestroyDebugReportCallbackEXT"));
-        if (destroy_debug_report != nullptr)
-        {
-            destroy_debug_report(
-                context_.instance,
-                debug_report_,
-                context_.allocator);
-        }
-        debug_report_ = VK_NULL_HANDLE;
-    }
-#endif
-
-    if (context_.instance != VK_NULL_HANDLE && context_.surface != VK_NULL_HANDLE)
-    {
-        vkDestroySurfaceKHR(context_.instance, context_.surface, context_.allocator);
+        vkDestroySurfaceKHR(context_.instance, context_.surface, nullptr);
         context_.surface = VK_NULL_HANDLE;
     }
     if (context_.instance != VK_NULL_HANDLE)
     {
-        vkDestroyInstance(context_.instance, context_.allocator);
+        vkb::destroy_instance(impl_->vkb_instance);
         context_.instance = VK_NULL_HANDLE;
     }
-
-    context_ = {};
     if (window_ != nullptr)
     {
         glfwDestroyWindow(window_);
         window_ = nullptr;
     }
-    if (glfw_initialized_)
-    {
-        glfwTerminate();
-        glfw_initialized_ = false;
-    }
-    initialized_ = false;
-}
-
-GLFWwindow* VulkanBackend::window() const noexcept
-{
-    return window_;
-}
-
-const VulkanContext& VulkanBackend::context() const noexcept
-{
-    return context_;
+    glfwTerminate();
 }
 
 }

@@ -30,7 +30,6 @@ set(SLRYE_RUNTIME_SOURCES
     services/picking/picking.cpp
     services/rendering/scene_geometry.cpp
     services/rendering/scene_renderer.cpp
-    # services/rendering/vam_resources.h
     services/serialization/scene_serializer.cpp
     services/settings/editor_settings.cpp
     ui/editor_ui.cpp
@@ -38,6 +37,9 @@ set(SLRYE_RUNTIME_SOURCES
     ui/styles/spectrum.cpp
     ui/styles/style.cpp
     views/camera_controller.cpp
+    views/console_panel.cpp
+    views/inspector_panel.cpp
+    views/scene_hierarchy_panel.cpp
     views/view.cpp
     views/viewport.cpp
 )

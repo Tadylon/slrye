@@ -1,4 +1,6 @@
 #pragma once
+
+#include <cstdint>
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
@@ -10,6 +12,7 @@ struct AllocatedBuffer
     VkBuffer buffer = VK_NULL_HANDLE;
     VmaAllocation allocation = VK_NULL_HANDLE;
     VmaAllocationInfo info{};
+    VkDeviceSize size = 0;
 
     static AllocatedBuffer create(
         VmaAllocator allocator,
@@ -22,23 +25,45 @@ struct AllocatedBuffer
         buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         buffer_info.size = size;
         buffer_info.usage = usage;
+        buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         VmaAllocationCreateInfo alloc_info{};
         alloc_info.usage = memory_usage;
         alloc_info.flags = flags;
 
         AllocatedBuffer res;
+        res.size = size;
         vmaCreateBuffer(allocator, &buffer_info, &alloc_info, &res.buffer, &res.allocation, &res.info);
         return res;
     }
 
+    void* map(VmaAllocator allocator)
+    {
+        void* data = nullptr;
+        if (allocation != VK_NULL_HANDLE)
+        {
+            vmaMapMemory(allocator, allocation, &data);
+        }
+        return data;
+    }
+
+    void unmap(VmaAllocator allocator)
+    {
+        if (allocation != VK_NULL_HANDLE)
+        {
+            vmaUnmapMemory(allocator, allocation);
+        }
+    }
+
     void destroy(VmaAllocator allocator)
     {
-        if (buffer != VK_NULL_HANDLE)
+        if (buffer != VK_NULL_HANDLE && allocator != VK_NULL_HANDLE)
         {
             vmaDestroyBuffer(allocator, buffer, allocation);
             buffer = VK_NULL_HANDLE;
             allocation = VK_NULL_HANDLE;
+            size = 0;
+            info = {};
         }
     }
 };
@@ -71,6 +96,7 @@ struct AllocatedImage
         image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         image_info.usage = usage;
         image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+        image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         VmaAllocationCreateInfo alloc_info{};
         alloc_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
@@ -95,12 +121,12 @@ struct AllocatedImage
 
     void destroy(VmaAllocator allocator, VkDevice device)
     {
-        if (image_view != VK_NULL_HANDLE)
+        if (image_view != VK_NULL_HANDLE && device != VK_NULL_HANDLE)
         {
             vkDestroyImageView(device, image_view, nullptr);
             image_view = VK_NULL_HANDLE;
         }
-        if (image != VK_NULL_HANDLE)
+        if (image != VK_NULL_HANDLE && allocator != VK_NULL_HANDLE)
         {
             vmaDestroyImage(allocator, image, allocation);
             image = VK_NULL_HANDLE;

@@ -10,11 +10,16 @@
 #include <domain/editor_settings.h>
 #include <domain/entity_id.h>
 #include <ui/theme_manager.h>
+#include <views/console_panel.h>
+#include <views/inspector_panel.h>
+#include <views/scene_hierarchy_panel.h>
 #include <views/view.h>
 #include <views/viewport.h>
 
 namespace slrye
 {
+
+class Scene;
 
 class EditorUI
 {
@@ -27,6 +32,7 @@ public:
     EditorUI& operator=(EditorUI&&) = delete;
 
     void initialize(EditorSettings& settings);
+    void set_scene(Scene* scene);
     bool initialize_viewport(
         const VulkanContext& context,
         const std::filesystem::path& shader_directory,
@@ -42,11 +48,17 @@ public:
     void set_viewport_camera_speed(float speed) noexcept;
     void set_viewport_grid_visible(bool visible) noexcept;
 
+    void select_entity(std::optional<EntityId> entity);
+
     [[nodiscard]] EditorTheme theme() const noexcept;
     [[nodiscard]] const PerspectiveCamera& viewport_camera() const noexcept;
     [[nodiscard]] std::optional<EntityId> selected_entity() const noexcept;
     [[nodiscard]] float viewport_camera_speed() const noexcept;
     [[nodiscard]] bool is_viewport_grid_visible() const noexcept;
+
+    [[nodiscard]] SceneHierarchyPanel& hierarchy_panel() noexcept { return hierarchy_panel_; }
+    [[nodiscard]] InspectorPanel& inspector_panel() noexcept { return inspector_panel_; }
+    [[nodiscard]] ConsolePanel& console_panel() noexcept { return console_panel_; }
 
 private:
     EditorUI() = default;
@@ -60,7 +72,14 @@ private:
     ThemeManager theme_manager_;
     EditorSettings* settings_ = nullptr;
     EditorViewState view_state_;
+    Scene* scene_ = nullptr;
+    std::optional<EntityId> selected_entity_;
+
     Viewport viewport_;
+    SceneHierarchyPanel hierarchy_panel_;
+    InspectorPanel inspector_panel_;
+    ConsolePanel console_panel_;
+
     bool show_about_window_ = false;
 };
 

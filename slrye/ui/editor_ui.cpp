@@ -37,12 +37,16 @@ void EditorUI::initialize(EditorSettings& settings)
     theme_manager_.apply(settings.theme);
 }
 
-ImVec4 EditorUI::render()
+void EditorUI::set_scene(Scene* scene)
 {
-    draw_workspace();
-    draw_about_window();
-    viewport_.render();
-    return slrye::render(view_state_);
+    scene_ = scene;
+    selected_entity_.reset();
+    if (scene_ != nullptr)
+    {
+        viewport_.set_scene(*scene_);
+    }
+    hierarchy_panel_.set_scene(scene_);
+    inspector_panel_.set_scene(scene_);
 }
 
 bool EditorUI::initialize_viewport(
@@ -51,13 +55,47 @@ bool EditorUI::initialize_viewport(
     Scene& scene,
     std::string* error)
 {
+    set_scene(&scene);
     return viewport_.initialize(context, shader_directory, scene, error);
+}
+
+void EditorUI::select_entity(std::optional<EntityId> entity)
+{
+    selected_entity_ = entity;
+    viewport_.set_selected_entity(entity);
+    hierarchy_panel_.set_selected_entity(entity);
+    inspector_panel_.set_selected_entity(entity);
+}
+
+ImVec4 EditorUI::render()
+{
+    draw_workspace();
+    draw_about_window();
+
+    // 双向同步 Viewport 射线拾取与 Hierarchy 点击选中
+    if (viewport_.selected_entity() != selected_entity_)
+    {
+        select_entity(viewport_.selected_entity());
+    }
+    else if (hierarchy_panel_.selected_entity() != selected_entity_)
+    {
+        select_entity(hierarchy_panel_.selected_entity());
+    }
+
+    viewport_.render();
+    hierarchy_panel_.render();
+    inspector_panel_.render();
+    console_panel_.render();
+
+    return slrye::render(view_state_);
 }
 
 void EditorUI::shutdown()
 {
     viewport_.shutdown();
     settings_ = nullptr;
+    scene_ = nullptr;
+    selected_entity_.reset();
 }
 
 void EditorUI::set_theme(EditorTheme theme)
@@ -99,7 +137,7 @@ const PerspectiveCamera& EditorUI::viewport_camera() const noexcept
 
 std::optional<EntityId> EditorUI::selected_entity() const noexcept
 {
-    return viewport_.selected_entity();
+    return selected_entity_;
 }
 
 float EditorUI::viewport_camera_speed() const noexcept
@@ -170,6 +208,19 @@ void EditorUI::draw_menu_bar()
         {
             viewport_.set_visible(!viewport_.is_visible());
         }
+        if (ImGui::MenuItem("Scene Hierarchy", nullptr, hierarchy_panel_.is_visible()))
+        {
+            hierarchy_panel_.set_visible(!hierarchy_panel_.is_visible());
+        }
+        if (ImGui::MenuItem("Inspector", nullptr, inspector_panel_.is_visible()))
+        {
+            inspector_panel_.set_visible(!inspector_panel_.is_visible());
+        }
+        if (ImGui::MenuItem("Console", nullptr, console_panel_.is_visible()))
+        {
+            console_panel_.set_visible(!console_panel_.is_visible());
+        }
+        ImGui::Separator();
         ImGui::MenuItem("Editor Preview", nullptr, &view_state_.show_demo_window);
         ImGui::EndMenu();
     }
@@ -224,8 +275,17 @@ void EditorUI::draw_workspace()
         ImGui::DockBuilderRemoveNode(dockspace_id);
         ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspace_id, dockspace_size);
-        ImGui::DockBuilderDockWindow("Viewport", dockspace_id);
-        ImGui::DockBuilderDockWindow("SLRYE", dockspace_id);
+
+        ImGuiID dock_main_id = dockspace_id;
+        ImGuiID dock_left_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Left, 0.22f, nullptr, &dock_main_id);
+        ImGuiID dock_right_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Right, 0.26f, nullptr, &dock_main_id);
+        ImGuiID dock_down_id = ImGui::DockBuilderSplitNode(dock_main_id, ImGuiDir_Down, 0.26f, nullptr, &dock_main_id);
+
+        ImGui::DockBuilderDockWindow("Scene Hierarchy", dock_left_id);
+        ImGui::DockBuilderDockWindow("Viewport", dock_main_id);
+        ImGui::DockBuilderDockWindow("Console", dock_down_id);
+        ImGui::DockBuilderDockWindow("SLRYE", dock_down_id);
+        ImGui::DockBuilderDockWindow("Inspector", dock_right_id);
         ImGui::DockBuilderFinish(dockspace_id);
     }
 

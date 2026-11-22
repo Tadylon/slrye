@@ -87,6 +87,9 @@ TEST_CASE("Editor shell submits the workspace, docking area, and status bar")
     REQUIRE(workspace != nullptr);
     CHECK((workspace->Flags & ImGuiWindowFlags_MenuBar) != 0);
     CHECK(ImGui::FindWindowByName("Viewport") != nullptr);
+    CHECK(ImGui::FindWindowByName("Scene Hierarchy") != nullptr);
+    CHECK(ImGui::FindWindowByName("Inspector") != nullptr);
+    CHECK(ImGui::FindWindowByName("Console") != nullptr);
     REQUIRE(ImGui::GetDrawData() != nullptr);
     CHECK(ImGui::GetDrawData()->Valid);
     // CHECK(ImGui::GetDrawData()->CmdListsCount > 0);

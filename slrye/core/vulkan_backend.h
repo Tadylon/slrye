@@ -1,7 +1,8 @@
 #pragma once
 
+#include <memory>
 #include <core/vulkan_context.h>
-#include <VkBootstrap.h>
+
 struct GLFWwindow;
 
 namespace slrye
@@ -9,13 +10,6 @@ namespace slrye
 
 class VulkanBackend
 {
-private:
-    // 在 VulkanBackend 内部持有 vkb 包装对象以便释放
-    struct Impl
-    {
-        vkb::Instance vkb_instance;
-        vkb::Device vkb_device;
-    };
 public:
     [[nodiscard]] static VulkanBackend& instance();
 
@@ -36,10 +30,11 @@ private:
     VulkanBackend();
     ~VulkanBackend();
 
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
+
     VulkanContext context_;
     GLFWwindow* window_ = nullptr;
-    VkDebugReportCallbackEXT debug_report_ = VK_NULL_HANDLE;
-    Impl* impl_;
     bool glfw_initialized_ = false;
     bool initialized_ = false;
 };

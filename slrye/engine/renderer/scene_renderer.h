@@ -16,7 +16,17 @@ namespace slrye::engine
 class PerspectiveCamera;
 class Scene;
 struct VulkanContext;
+class VulkanBackend;
 
+/**
+ * @brief 视口 3D 场景离屏渲染器
+ * 
+ * 职责与层级关系：
+ * 1. 位于 Renderer 层，负责将 Scene 中的网格、选中高亮线框、网格基准地面（Grid）
+ *    离屏渲染至一张独立的 Vulkan 颜色纹理（AllocatedImage）；
+ * 2. 内部采用 PImpl 模式（Impl），隔离 Vulkan 管线、渲染通道与 VMA 显存分配细节；
+ * 3. 构造与析构函数为 public，支持由 Viewport 面板或其他渲染持有者直接作为成员持有。
+ */
 class SceneRenderer
 {
 public:
@@ -30,6 +40,10 @@ public:
 
     bool initialize(
         const VulkanContext& context,
+        const std::filesystem::path& shader_directory,
+        std::string* error = nullptr);
+    bool initialize(
+        const VulkanBackend& backend,
         const std::filesystem::path& shader_directory,
         std::string* error = nullptr);
     bool render(

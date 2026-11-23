@@ -12,6 +12,10 @@ TEST_CASE("ImGui backend rejects initialization without a window")
     CHECK(&backend == &same_backend);
     CHECK_FALSE(backend.is_initialized());
     CHECK_FALSE(backend.initialize(nullptr, context));
+    
+    slrye::VulkanBackend uninit_vk;
+    CHECK_FALSE(backend.initialize(uninit_vk));
+    
     CHECK_FALSE(backend.begin_frame());
     CHECK_FALSE(backend.is_initialized());
 }
@@ -34,4 +38,11 @@ TEST_CASE("Vulkan backend exposes one process-wide instance")
 
     CHECK(&backend == &same_backend);
     CHECK_FALSE(backend.context().is_valid());
+}
+
+TEST_CASE("Vulkan backend can be directly instantiated as an owned object")
+{
+    slrye::VulkanBackend owned_backend;
+    CHECK_FALSE(owned_backend.context().is_valid());
+    owned_backend.wait_idle();
 }

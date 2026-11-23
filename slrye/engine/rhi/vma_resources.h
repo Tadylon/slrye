@@ -55,6 +55,11 @@ struct AllocatedBuffer
         }
     }
 
+    [[nodiscard]] bool is_valid() const noexcept
+    {
+        return buffer != VK_NULL_HANDLE;
+    }
+
     void destroy(VmaAllocator allocator)
     {
         if (buffer != VK_NULL_HANDLE && allocator != VK_NULL_HANDLE)
@@ -117,6 +122,11 @@ struct AllocatedImage
 
         vkCreateImageView(device, &view_info, nullptr, &res.image_view);
         return res;
+    }
+
+    [[nodiscard]] bool is_valid() const noexcept
+    {
+        return image != VK_NULL_HANDLE && image_view != VK_NULL_HANDLE;
     }
 
     void destroy(VmaAllocator allocator, VkDevice device)

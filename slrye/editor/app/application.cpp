@@ -88,7 +88,7 @@ int Application::run()
         return 1;
     }
 
-    if (!imgui_backend_.initialize(backend_.window(), backend_.context()))
+    if (!imgui_backend_.initialize(backend_))
     {
         fprintf(stderr, "Unable to initialize the Dear ImGui Vulkan backend\n");
         save_editor_preferences();

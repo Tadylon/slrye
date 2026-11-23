@@ -272,4 +272,39 @@ const VulkanContext& VulkanBackend::context() const noexcept
     return context_;
 }
 
+void VulkanBackend::wait_idle() const
+{
+    if (context_.device != VK_NULL_HANDLE)
+    {
+        vkDeviceWaitIdle(context_.device);
+    }
+}
+
+AllocatedBuffer VulkanBackend::create_buffer(
+    VkDeviceSize size,
+    VkBufferUsageFlags usage,
+    VmaMemoryUsage memory_usage,
+    VmaAllocationCreateFlags flags) const
+{
+    if (context_.vma_allocator == VK_NULL_HANDLE)
+    {
+        return {};
+    }
+    return AllocatedBuffer::create(context_.vma_allocator, size, usage, memory_usage, flags);
+}
+
+AllocatedImage VulkanBackend::create_image(
+    uint32_t width,
+    uint32_t height,
+    VkFormat format,
+    VkImageUsageFlags usage,
+    VkImageAspectFlags aspect) const
+{
+    if (context_.vma_allocator == VK_NULL_HANDLE || context_.device == VK_NULL_HANDLE)
+    {
+        return {};
+    }
+    return AllocatedImage::create_2d(context_.vma_allocator, context_.device, width, height, format, usage, aspect);
+}
+
 }

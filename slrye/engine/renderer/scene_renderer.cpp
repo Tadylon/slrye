@@ -13,6 +13,8 @@
 #include <vulkan/vulkan.h>
 
 #include <engine/rhi/vulkan/vulkan_context.h>
+#include <engine/rhi/vulkan/vulkan_backend.h>
+#include <engine/rhi/vma_resources.h>
 #include <engine/renderer/camera.h>
 #include <engine/scene/scene.h>
 #include <engine/platform/file_io.h>
@@ -80,24 +82,6 @@ private:
     bool ensure_vertex_capacity(VkDeviceSize required_size, std::string* error);
     bool upload_geometry(const SceneGeometry& geometry, std::string* error);
     bool record_and_submit(const PerspectiveCamera& camera, std::size_t vertex_count, std::string* error);
-    std::uint32_t find_memory_type(
-        std::uint32_t type_filter,
-        VkMemoryPropertyFlags properties) const noexcept;
-    bool create_image(
-        std::uint32_t width,
-        std::uint32_t height,
-        VkFormat format,
-        VkImageUsageFlags usage,
-        VkImage& image,
-        VkDeviceMemory& memory,
-        std::string* error);
-    bool create_image_view(
-        VkImage image,
-        VkFormat format,
-        VkImageAspectFlags aspect,
-        VkImageView& image_view,
-        std::string* error);
-
     VulkanContext context_;
     VkFormat color_format_ = VK_FORMAT_UNDEFINED;
     VkFormat depth_format_ = VK_FORMAT_UNDEFINED;
@@ -106,19 +90,14 @@ private:
     VkPipeline pipeline_ = VK_NULL_HANDLE;
     VkCommandPool command_pool_ = VK_NULL_HANDLE;
     VkCommandBuffer command_buffer_ = VK_NULL_HANDLE;
-    VkImage color_image_ = VK_NULL_HANDLE;
-    VkDeviceMemory color_memory_ = VK_NULL_HANDLE;
-    VkImageView color_view_ = VK_NULL_HANDLE;
-    VkImage depth_image_ = VK_NULL_HANDLE;
-    VkDeviceMemory depth_memory_ = VK_NULL_HANDLE;
-    VkImageView depth_view_ = VK_NULL_HANDLE;
+    AllocatedImage color_target_{};
+    AllocatedImage depth_target_{};
     VkSampler sampler_ = VK_NULL_HANDLE;
     VkFramebuffer framebuffer_ = VK_NULL_HANDLE;
     VkDescriptorSet texture_descriptor_ = VK_NULL_HANDLE;
     std::uint32_t width_ = 0;
     std::uint32_t height_ = 0;
-    VkBuffer vertex_buffer_ = VK_NULL_HANDLE;
-    VkDeviceMemory vertex_memory_ = VK_NULL_HANDLE;
+    AllocatedBuffer vertex_buffer_{};
     void* mapped_vertices_ = nullptr;
     VkDeviceSize vertex_capacity_ = 0;
     bool initialized_ = false;
@@ -198,19 +177,10 @@ void SceneRenderer::Impl::shutdown()
 
         if (mapped_vertices_ != nullptr)
         {
-            vkUnmapMemory(context_.device, vertex_memory_);
+            vertex_buffer_.unmap(context_.vma_allocator);
             mapped_vertices_ = nullptr;
         }
-        if (vertex_buffer_ != VK_NULL_HANDLE)
-        {
-            vkDestroyBuffer(context_.device, vertex_buffer_, context_.allocator);
-            vertex_buffer_ = VK_NULL_HANDLE;
-        }
-        if (vertex_memory_ != VK_NULL_HANDLE)
-        {
-            vkFreeMemory(context_.device, vertex_memory_, context_.allocator);
-            vertex_memory_ = VK_NULL_HANDLE;
-        }
+        vertex_buffer_.destroy(context_.vma_allocator);
         if (command_pool_ != VK_NULL_HANDLE)
         {
             vkDestroyCommandPool(context_.device, command_pool_, context_.allocator);
@@ -576,35 +546,27 @@ bool SceneRenderer::Impl::create_render_target(
     std::uint32_t height,
     std::string* error)
 {
-    if (!create_image(
-            width,
-            height,
-            color_format_,
-            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-            color_image_,
-            color_memory_,
-            error) ||
-        !create_image_view(
-            color_image_,
-            color_format_,
-            VK_IMAGE_ASPECT_COLOR_BIT,
-            color_view_,
-            error) ||
-        !create_image(
-            width,
-            height,
-            depth_format_,
-            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-            depth_image_,
-            depth_memory_,
-            error) ||
-        !create_image_view(
-            depth_image_,
-            depth_format_,
-            VK_IMAGE_ASPECT_DEPTH_BIT,
-            depth_view_,
-            error))
+    color_target_ = AllocatedImage::create_2d(
+        context_.vma_allocator,
+        context_.device,
+        width,
+        height,
+        color_format_,
+        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+        VK_IMAGE_ASPECT_COLOR_BIT);
+
+    depth_target_ = AllocatedImage::create_2d(
+        context_.vma_allocator,
+        context_.device,
+        width,
+        height,
+        depth_format_,
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VK_IMAGE_ASPECT_DEPTH_BIT);
+
+    if (!color_target_.is_valid() || !depth_target_.is_valid())
     {
+        set_error(error, "Unable to allocate viewport render target images via VMA");
         destroy_render_target();
         return false;
     }
@@ -627,7 +589,7 @@ bool SceneRenderer::Impl::create_render_target(
         return false;
     }
 
-    const std::array<VkImageView, 2> attachments{color_view_, depth_view_};
+    const std::array<VkImageView, 2> attachments{color_target_.image_view, depth_target_.image_view};
     VkFramebufferCreateInfo framebuffer_info{};
     framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebuffer_info.renderPass = render_pass_;
@@ -651,7 +613,7 @@ bool SceneRenderer::Impl::create_render_target(
 
     texture_descriptor_ = ImGui_ImplVulkan_AddTexture(
         sampler_,
-        color_view_,
+        color_target_.image_view,
         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     if (texture_descriptor_ == VK_NULL_HANDLE)
     {
@@ -690,36 +652,9 @@ void SceneRenderer::Impl::destroy_render_target() noexcept
         vkDestroySampler(context_.device, sampler_, context_.allocator);
         sampler_ = VK_NULL_HANDLE;
     }
-    if (depth_view_ != VK_NULL_HANDLE)
-    {
-        vkDestroyImageView(context_.device, depth_view_, context_.allocator);
-        depth_view_ = VK_NULL_HANDLE;
-    }
-    if (depth_image_ != VK_NULL_HANDLE)
-    {
-        vkDestroyImage(context_.device, depth_image_, context_.allocator);
-        depth_image_ = VK_NULL_HANDLE;
-    }
-    if (depth_memory_ != VK_NULL_HANDLE)
-    {
-        vkFreeMemory(context_.device, depth_memory_, context_.allocator);
-        depth_memory_ = VK_NULL_HANDLE;
-    }
-    if (color_view_ != VK_NULL_HANDLE)
-    {
-        vkDestroyImageView(context_.device, color_view_, context_.allocator);
-        color_view_ = VK_NULL_HANDLE;
-    }
-    if (color_image_ != VK_NULL_HANDLE)
-    {
-        vkDestroyImage(context_.device, color_image_, context_.allocator);
-        color_image_ = VK_NULL_HANDLE;
-    }
-    if (color_memory_ != VK_NULL_HANDLE)
-    {
-        vkFreeMemory(context_.device, color_memory_, context_.allocator);
-        color_memory_ = VK_NULL_HANDLE;
-    }
+
+    depth_target_.destroy(context_.vma_allocator, context_.device);
+    color_target_.destroy(context_.vma_allocator, context_.device);
 
     width_ = 0;
     height_ = 0;
@@ -753,72 +688,32 @@ bool SceneRenderer::Impl::ensure_vertex_capacity(
     vkDeviceWaitIdle(context_.device);
     if (mapped_vertices_ != nullptr)
     {
-        vkUnmapMemory(context_.device, vertex_memory_);
+        vertex_buffer_.unmap(context_.vma_allocator);
         mapped_vertices_ = nullptr;
     }
-    if (vertex_buffer_ != VK_NULL_HANDLE)
-    {
-        vkDestroyBuffer(context_.device, vertex_buffer_, context_.allocator);
-        vertex_buffer_ = VK_NULL_HANDLE;
-    }
-    if (vertex_memory_ != VK_NULL_HANDLE)
-    {
-        vkFreeMemory(context_.device, vertex_memory_, context_.allocator);
-        vertex_memory_ = VK_NULL_HANDLE;
-    }
+    vertex_buffer_.destroy(context_.vma_allocator);
 
     vertex_capacity_ = std::max<VkDeviceSize>(required_size, 4096);
-    VkBufferCreateInfo buffer_info{};
-    buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    buffer_info.size = vertex_capacity_;
-    buffer_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    if (!check_result(
-            vkCreateBuffer(
-                context_.device,
-                &buffer_info,
-                context_.allocator,
-                &vertex_buffer_),
-            "vkCreateBuffer",
-            error))
+    vertex_buffer_ = AllocatedBuffer::create(
+        context_.vma_allocator,
+        vertex_capacity_,
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VMA_MEMORY_USAGE_AUTO,
+        VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT);
+
+    if (!vertex_buffer_.is_valid())
     {
         vertex_capacity_ = 0;
+        set_error(error, "Unable to allocate the viewport vertex buffer via VMA");
         return false;
     }
 
-    VkMemoryRequirements memory_requirements{};
-    vkGetBufferMemoryRequirements(context_.device, vertex_buffer_, &memory_requirements);
-    VkMemoryAllocateInfo allocation{};
-    allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocation.allocationSize = memory_requirements.size;
-    allocation.memoryTypeIndex = find_memory_type(
-        memory_requirements.memoryTypeBits,
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-    if (allocation.memoryTypeIndex == std::numeric_limits<std::uint32_t>::max() ||
-        !check_result(
-            vkAllocateMemory(
-                context_.device,
-                &allocation,
-                context_.allocator,
-                &vertex_memory_),
-            "vkAllocateMemory",
-            error) ||
-        !check_result(
-            vkBindBufferMemory(context_.device, vertex_buffer_, vertex_memory_, 0),
-            "vkBindBufferMemory",
-            error) ||
-        !check_result(
-            vkMapMemory(
-                context_.device,
-                vertex_memory_,
-                0,
-                VK_WHOLE_SIZE,
-                0,
-                &mapped_vertices_),
-            "vkMapMemory",
-            error))
+    mapped_vertices_ = vertex_buffer_.map(context_.vma_allocator);
+    if (mapped_vertices_ == nullptr)
     {
-        set_error(error, "Unable to allocate the viewport vertex buffer");
+        vertex_buffer_.destroy(context_.vma_allocator);
+        vertex_capacity_ = 0;
+        set_error(error, "Unable to map viewport vertex buffer memory");
         return false;
     }
 
@@ -896,7 +791,7 @@ bool SceneRenderer::Impl::record_and_submit(
 
         const VkDeviceSize offset = 0;
         vkCmdBindPipeline(command_buffer_, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_);
-        vkCmdBindVertexBuffers(command_buffer_, 0, 1, &vertex_buffer_, &offset);
+        vkCmdBindVertexBuffers(command_buffer_, 0, 1, &vertex_buffer_.buffer, &offset);
         const glm::mat4 view_projection = camera.view_projection_matrix();
         vkCmdPushConstants(
             command_buffer_,
@@ -933,103 +828,6 @@ bool SceneRenderer::Impl::record_and_submit(
     return check_result(vkQueueWaitIdle(context_.graphics_queue), "vkQueueWaitIdle", error);
 }
 
-std::uint32_t SceneRenderer::Impl::find_memory_type(
-    std::uint32_t type_filter,
-    VkMemoryPropertyFlags properties) const noexcept
-{
-    VkPhysicalDeviceMemoryProperties memory_properties{};
-    vkGetPhysicalDeviceMemoryProperties(context_.physical_device, &memory_properties);
-    for (std::uint32_t index = 0; index < memory_properties.memoryTypeCount; ++index)
-    {
-        if ((type_filter & (1u << index)) != 0 &&
-            (memory_properties.memoryTypes[index].propertyFlags & properties) == properties)
-        {
-            return index;
-        }
-    }
-    return std::numeric_limits<std::uint32_t>::max();
-}
-
-bool SceneRenderer::Impl::create_image(
-    std::uint32_t width,
-    std::uint32_t height,
-    VkFormat format,
-    VkImageUsageFlags usage,
-    VkImage& image,
-    VkDeviceMemory& memory,
-    std::string* error)
-{
-    VkImageCreateInfo image_info{};
-    image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    image_info.imageType = VK_IMAGE_TYPE_2D;
-    image_info.extent = VkExtent3D{width, height, 1};
-    image_info.mipLevels = 1;
-    image_info.arrayLayers = 1;
-    image_info.format = format;
-    image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-    image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    image_info.usage = usage;
-    image_info.samples = VK_SAMPLE_COUNT_1_BIT;
-    image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    if (!check_result(
-            vkCreateImage(context_.device, &image_info, context_.allocator, &image),
-            "vkCreateImage",
-            error))
-    {
-        return false;
-    }
-
-    VkMemoryRequirements requirements{};
-    vkGetImageMemoryRequirements(context_.device, image, &requirements);
-    VkMemoryAllocateInfo allocation{};
-    allocation.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocation.allocationSize = requirements.size;
-    allocation.memoryTypeIndex = find_memory_type(
-        requirements.memoryTypeBits,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    if (allocation.memoryTypeIndex == std::numeric_limits<std::uint32_t>::max() ||
-        !check_result(
-            vkAllocateMemory(context_.device, &allocation, context_.allocator, &memory),
-            "vkAllocateMemory",
-            error) ||
-        !check_result(
-            vkBindImageMemory(context_.device, image, memory, 0),
-            "vkBindImageMemory",
-            error))
-    {
-        set_error(error, "Unable to allocate viewport image memory");
-        return false;
-    }
-    return true;
-}
-
-bool SceneRenderer::Impl::create_image_view(
-    VkImage image,
-    VkFormat format,
-    VkImageAspectFlags aspect,
-    VkImageView& image_view,
-    std::string* error)
-{
-    VkImageViewCreateInfo create_info{};
-    create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    create_info.image = image;
-    create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    create_info.format = format;
-    create_info.subresourceRange.aspectMask = aspect;
-    create_info.subresourceRange.baseMipLevel = 0;
-    create_info.subresourceRange.levelCount = 1;
-    create_info.subresourceRange.baseArrayLayer = 0;
-    create_info.subresourceRange.layerCount = 1;
-    return check_result(
-        vkCreateImageView(
-            context_.device,
-            &create_info,
-            context_.allocator,
-            &image_view),
-        "vkCreateImageView",
-        error);
-}
-
 SceneRenderer::SceneRenderer()
     : impl_(std::make_unique<Impl>())
 {
@@ -1046,6 +844,14 @@ bool SceneRenderer::initialize(
     std::string* error)
 {
     return impl_->initialize(context, shader_directory, error);
+}
+
+bool SceneRenderer::initialize(
+    const VulkanBackend& backend,
+    const std::filesystem::path& shader_directory,
+    std::string* error)
+{
+    return impl_->initialize(backend.context(), shader_directory, error);
 }
 
 bool SceneRenderer::render(

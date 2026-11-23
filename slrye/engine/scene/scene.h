@@ -19,6 +19,17 @@
 namespace slrye::engine
 {
 
+/**
+ * @brief 场景实体与组件注册中心（ECS 核心数据库）
+ * 
+ * 职责与层级关系：
+ * 1. 位于 Scene 层的核心，作为整个场景所有实体和组件数据的唯一持有者（Database）；
+ * 2. 内部采用 EnTT（entt::registry）以稀疏集（Sparse Set）连续内存存储各类 Component，保证极高缓存命中率；
+ * 3. 维护两套 ID 映射体系：
+ *    - 业务层稳定 ID：`EntityId`（64位全局随机 UUID，支持场景序列化与引用稳定）；
+ *    - 底层 EnTT Handle：`entt::entity`（密集数组下标，随实体增删动态重排）；
+ * 4. 维护父子层级树与变更版本戳（revision_），供 Viewport 面板判断场景变动并按需重绘。
+ */
 class Scene
 {
 public:
@@ -162,14 +173,14 @@ private:
     [[nodiscard]] EntityId generate_id();
     [[nodiscard]] entt::entity handle_for(EntityId id) const noexcept;
 
-    std::string name_;
-    entt::registry registry_;
-    std::unordered_map<EntityId, entt::entity, EntityIdHash> entities_;
-    std::unordered_map<entt::entity, EntityId> entity_to_id_;
-    std::vector<EntityId> entity_order_;
-    std::mt19937_64 id_generator_;
-    bool dirty_ = false;
-    std::uint64_t revision_ = 0;
+    std::string name_;                                                  ///< 场景显示名称
+    entt::registry registry_;                                           ///< EnTT 组件密集连续存储注册表
+    std::unordered_map<EntityId, entt::entity, EntityIdHash> entities_;  ///< 业务稳定 ID 到 EnTT 内部密集句柄的映射表
+    std::unordered_map<entt::entity, EntityId> entity_to_id_;           ///< EnTT 内部句柄反查稳定 ID 的反向映射表
+    std::vector<EntityId> entity_order_;                                ///< 记录实体创建顺序的线性列表
+    std::mt19937_64 id_generator_;                                      ///< 64 位高质量伪随机数生成器（用于创建 UUID）
+    bool dirty_ = false;                                                ///< 场景未保存修改标记
+    std::uint64_t revision_ = 0;                                        ///< 单调递增的场景数据变动版本号
 };
 
 // Inline implementations of Entity template methods delegating to Scene Facade

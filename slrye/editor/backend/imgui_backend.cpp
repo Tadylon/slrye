@@ -1,5 +1,7 @@
 ﻿#include <editor/backend/imgui_backend.h>
 
+#include <engine/rhi/vulkan/vulkan_backend.h>
+
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_vulkan.h>
 
@@ -274,6 +276,11 @@ ImGuiBackend::ImGuiBackend() = default;
 ImGuiBackend::~ImGuiBackend()
 {
     shutdown();
+}
+
+bool ImGuiBackend::initialize(const engine::VulkanBackend& backend)
+{
+    return initialize(backend.window(), backend.context());
 }
 
 bool ImGuiBackend::initialize(GLFWwindow* window, const engine::VulkanContext& context)

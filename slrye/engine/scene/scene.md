@@ -24,8 +24,11 @@
   * `ColliderComponent`：碰撞体几何参数（支持 `Box`, `Sphere`, `Capsule`，含半长宽 `half_extents`、半径 `radius` 与高度 `height`）。
 
 ### 2.3 `entity.h`
-* **定位**：面向上层开发的易用句柄（Facade Wrapper）。
-* **主要内容**：
+* **定位**：面向上层开发的易用句柄（Facade Handle / Value Object）。
+* **内存布局与轻量性**：
+  * 大小仅 16 字节：一个非拥有指针 `Scene* scene_` + 一个 64 位整型 `EntityId id_`；
+  * 自身不存储任何业务组件数据，支持像原生整数一样按值传递（Pass by Value）；
+* **主要内容与操作方法**：
   * 将 `Scene*` 与 `EntityId` 打包成一个轻量对象；
   * 提供直观的面向对象 API：
     * `add<T>(...)`：添加组件（若已有则抛出安全异常）；
@@ -37,6 +40,13 @@
 
 ### 2.4 `scene.h` / `scene.cpp`
 * **定位**：场景主容器与 EnTT 封装桥梁。
+* **主要成员变量**：
+  * `registry_` (`entt::registry`)：EnTT 核心组件稀疏集注册表，所有组件紧密存储在各自类型的内存块中；
+  * `entities_` (`unordered_map<EntityId, entt::entity>`)：外部 64 位稳定 UUID 到 EnTT 内部密集句柄的映射；
+  * `entity_to_id_` (`unordered_map<entt::entity, EntityId>`)：EnTT 句柄反查稳定 UUID 的反向映射；
+  * `entity_order_` (`vector<EntityId>`)：记录实体创建顺序的线性数组；
+  * `revision_` (`uint64_t`)：单调递增版本计数器，实体或组件变动时自增；
+  * `dirty_` (`bool`)：未保存修改状态标记；
 * **主要内容**：
   * 封装 `entt::registry`，维护 `EntityId` 与 `entt::entity` 之间的双向映射关系；
   * **实体创建与默认组件保证**：

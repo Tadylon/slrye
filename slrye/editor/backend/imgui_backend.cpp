@@ -315,6 +315,11 @@ bool ImGuiBackend::initialize(GLFWwindow* window, const engine::VulkanContext& c
 
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
     if (!ImGui_ImplGlfw_InitForVulkan(window_, true))
     {
         ImGui::DestroyContext();

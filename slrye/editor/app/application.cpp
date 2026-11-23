@@ -69,16 +69,16 @@ int Application::run()
     else if (active_scene_->entity_count() == 0)
     {
         engine::Entity cube = active_scene_->create_entity("Cube");
-        cube.add<engine::TransformComponent>().position = glm::vec3(0.0f, 0.5f, 0.0f);
+        cube.get<engine::TransformComponent>().position = glm::vec3(0.0f, 0.5f, 0.0f);
         cube.add<engine::ColliderComponent>();
 
         engine::Entity light = active_scene_->create_entity("Directional Light");
-        light.add<engine::TransformComponent>().position = glm::vec3(5.0f, 10.0f, 5.0f);
+        light.get<engine::TransformComponent>().position = glm::vec3(5.0f, 10.0f, 5.0f);
         auto& lc = light.add<engine::LightComponent>();
         lc.type = engine::LightType::Directional;
 
         engine::Entity camera = active_scene_->create_entity("Main Camera");
-        camera.add<engine::TransformComponent>().position = glm::vec3(0.0f, 2.0f, 6.0f);
+        camera.get<engine::TransformComponent>().position = glm::vec3(0.0f, 2.0f, 6.0f);
         camera.add<engine::CameraComponent>();
     }
 

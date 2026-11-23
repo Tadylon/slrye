@@ -25,20 +25,12 @@ void EditorUI::initialize(EditorSettings& settings)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     io.ConfigDpiScaleFonts = true;
     io.ConfigDpiScaleViewports = true;
 
     if (io.Fonts->Fonts.Size == 0)
     {
         io.Fonts->AddFontDefault();
-    }
-    if (io.Fonts->TexData != nullptr)
-    {
-        unsigned char* pixels = nullptr;
-        int width = 0, height = 0;
-        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-        io.Fonts->SetTexID((ImTextureID)1);
     }
 
     theme_manager_.apply(settings.theme);

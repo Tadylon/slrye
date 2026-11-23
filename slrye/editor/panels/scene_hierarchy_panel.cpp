@@ -61,7 +61,6 @@ void SceneHierarchyPanel::render()
     if (ImGui::Button("+ Create Entity"))
     {
         engine::Entity created = scene_->create_entity("New Entity");
-        created.add<engine::TransformComponent>();
         selected_entity_ = created.id();
     }
 
@@ -147,7 +146,6 @@ void SceneHierarchyPanel::draw_entity_node(engine::EntityId id)
         if (ImGui::MenuItem("Add Child Entity"))
         {
             engine::Entity child = scene_->create_entity("Child Entity");
-            child.add<engine::TransformComponent>();
             scene_->set_parent(child.id(), id);
         }
         if (ImGui::MenuItem("Clear Parent"))
@@ -190,20 +188,18 @@ void SceneHierarchyPanel::draw_context_menu()
         if (ImGui::MenuItem("Create Empty Entity"))
         {
             engine::Entity entity = scene_->create_entity("Entity");
-            entity.add<engine::TransformComponent>();
             selected_entity_ = entity.id();
         }
         if (ImGui::MenuItem("Create Light"))
         {
             engine::Entity entity = scene_->create_entity("Point Light");
-            entity.add<engine::TransformComponent>(glm::vec3(0.0f, 3.0f, 0.0f));
+            entity.get<engine::TransformComponent>().position = glm::vec3(0.0f, 3.0f, 0.0f);
             entity.add<engine::LightComponent>();
             selected_entity_ = entity.id();
         }
         if (ImGui::MenuItem("Create Cube (Collider)"))
         {
             engine::Entity entity = scene_->create_entity("Cube");
-            entity.add<engine::TransformComponent>();
             entity.add<engine::ColliderComponent>();
             selected_entity_ = entity.id();
         }

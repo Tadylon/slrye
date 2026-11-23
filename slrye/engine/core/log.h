@@ -26,14 +26,14 @@ private:
     static std::shared_ptr<spdlog::logger> client_logger_;
 };
 
-#define SLRYE_CORE_TRACE(...)    ::slrye::Log::core_logger()->trace(__VA_ARGS__)
-#define SLRYE_CORE_INFO(...)     ::slrye::Log::core_logger()->info(__VA_ARGS__)
-#define SLRYE_CORE_WARN(...)     ::slrye::Log::core_logger()->warn(__VA_ARGS__)
-#define SLRYE_CORE_ERROR(...)    ::slrye::Log::core_logger()->error(__VA_ARGS__)
+#define SLRYE_CORE_TRACE(...)    slrye::Log::core_logger()->trace(__VA_ARGS__)
+#define SLRYE_CORE_INFO(...)     slrye::Log::core_logger()->info(__VA_ARGS__)
+#define SLRYE_CORE_WARN(...)     slrye::Log::core_logger()->warn(__VA_ARGS__)
+#define SLRYE_CORE_ERROR(...)    slrye::Log::core_logger()->error(__VA_ARGS__)
 
-#define SLRYE_TRACE(...)         ::slrye::Log::client_logger()->trace(__VA_ARGS__)
-#define SLRYE_INFO(...)          ::slrye::Log::client_logger()->info(__VA_ARGS__)
-#define SLRYE_WARN(...)          ::slrye::Log::client_logger()->warn(__VA_ARGS__)
-#define SLRYE_ERROR(...)         ::slrye::Log::client_logger()->error(__VA_ARGS__)
+#define SLRYE_TRACE(...)         slrye::Log::client_logger()->trace(__VA_ARGS__)
+#define SLRYE_INFO(...)          slrye::Log::client_logger()->info(__VA_ARGS__)
+#define SLRYE_WARN(...)          slrye::Log::client_logger()->warn(__VA_ARGS__)
+#define SLRYE_ERROR(...)         slrye::Log::client_logger()->error(__VA_ARGS__)
 
 }

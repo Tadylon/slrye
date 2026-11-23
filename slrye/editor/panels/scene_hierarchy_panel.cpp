@@ -73,7 +73,7 @@ void SceneHierarchyPanel::render()
     }
 
     // 点击空白区域取消选中
-    if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsWindowHovered())
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && !ImGui::IsAnyItemHovered())
     {
         selected_entity_ = std::nullopt;
     }

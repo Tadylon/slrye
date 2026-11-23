@@ -38,3 +38,33 @@ TEST_CASE("Camera focus keeps the current view direction")
     CHECK(camera.position().y == Catch::Approx(3.0f).margin(0.001f));
     CHECK(camera.position().z == Catch::Approx(4.0f).margin(0.001f));
 }
+
+TEST_CASE("Camera controller zooms with mouse wheel without requiring rotate flag")
+{
+    slrye::PerspectiveCamera camera;
+    slrye::CameraController controller;
+    camera.set_position(glm::vec3(0.0f, 0.0f, 5.0f));
+
+    slrye::CameraControllerInput input;
+    input.rotate = false;
+    input.wheel_delta = 2.0f;
+
+    CHECK(controller.update(camera, input));
+    CHECK(camera.position().z < 5.0f);
+}
+
+TEST_CASE("Camera controller pans along camera plane")
+{
+    slrye::PerspectiveCamera camera;
+    slrye::CameraController controller;
+    camera.set_position(glm::vec3(0.0f));
+
+    slrye::CameraControllerInput input;
+    input.pan = true;
+    input.pan_delta_x = 10.0f;
+    input.pan_delta_y = 5.0f;
+
+    CHECK(controller.update(camera, input));
+    CHECK(camera.position().x < 0.0f);
+    CHECK(camera.position().y > 0.0f);
+}

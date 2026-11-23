@@ -16,6 +16,8 @@
 #include <engine/rhi/vulkan/vulkan_backend.h>
 #include <engine/renderer/camera.h>
 #include <engine/scene/scene.h>
+#include <engine/scene/entity.h>
+#include <engine/scene/components.h>
 #include <engine/platform/paths.h>
 #include <engine/services/project/project_file.h>
 #include <engine/services/serialization/scene_serializer.h>
@@ -63,6 +65,21 @@ int Application::run()
             save_editor_preferences();
             return 2;
         }
+    }
+    else if (active_scene_->entity_count() == 0)
+    {
+        engine::Entity cube = active_scene_->create_entity("Cube");
+        cube.add<engine::TransformComponent>().position = glm::vec3(0.0f, 0.5f, 0.0f);
+        cube.add<engine::ColliderComponent>();
+
+        engine::Entity light = active_scene_->create_entity("Directional Light");
+        light.add<engine::TransformComponent>().position = glm::vec3(5.0f, 10.0f, 5.0f);
+        auto& lc = light.add<engine::LightComponent>();
+        lc.type = engine::LightType::Directional;
+
+        engine::Entity camera = active_scene_->create_entity("Main Camera");
+        camera.add<engine::TransformComponent>().position = glm::vec3(0.0f, 2.0f, 6.0f);
+        camera.add<engine::CameraComponent>();
     }
 
     if (!backend_.initialize("Slrye", 1280, 800))

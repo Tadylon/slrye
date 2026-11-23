@@ -140,15 +140,18 @@ void append_sphere(
 void append_grid(SceneGeometry& geometry)
 {
     constexpr int half_size = 10;
-    constexpr float width = 0.008f;
+    constexpr float normal_width = 0.015f;
+    constexpr float axis_width = 0.03f;
     const glm::mat4 identity(1.0f);
 
     for (int index = -half_size; index <= half_size; ++index)
     {
         const float offset = static_cast<float>(index);
-        const glm::vec3 color = index == 0
-            ? glm::vec3(0.25f, 0.45f, 0.75f)
-            : glm::vec3(0.24f, 0.25f, 0.27f);
+        const bool is_center = (index == 0);
+        const float width = is_center ? axis_width : normal_width;
+        const glm::vec3 color = is_center
+            ? glm::vec3(0.25f, 0.50f, 0.95f) // Z-axis blue
+            : glm::vec3(0.36f, 0.38f, 0.42f);
         append_quad(
             geometry,
             {
@@ -158,9 +161,9 @@ void append_grid(SceneGeometry& geometry)
                 glm::vec3(offset + width, 0.0f, -half_size)},
             glm::vec3(0.0f, 1.0f, 0.0f), color, identity);
 
-        const glm::vec3 opposite_color = index == 0
-            ? glm::vec3(0.75f, 0.32f, 0.25f)
-            : glm::vec3(0.24f, 0.25f, 0.27f);
+        const glm::vec3 opposite_color = is_center
+            ? glm::vec3(0.92f, 0.28f, 0.25f) // X-axis red
+            : glm::vec3(0.36f, 0.38f, 0.42f);
         append_quad(
             geometry,
             {

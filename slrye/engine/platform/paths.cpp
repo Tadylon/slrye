@@ -39,7 +39,20 @@ std::filesystem::path plugins_directory(const std::filesystem::path& executable_
 
 std::filesystem::path assets_directory(const std::filesystem::path& executable_path)
 {
-    return executable_path.parent_path() / "assets";
+    std::error_code ec;
+    const auto candidate1 = executable_path.parent_path() / "assets";
+    if (std::filesystem::exists(candidate1, ec) && std::filesystem::is_directory(candidate1, ec))
+    {
+        return candidate1;
+    }
+
+    const auto candidate2 = executable_path.parent_path().parent_path() / "assets";
+    if (std::filesystem::exists(candidate2, ec) && std::filesystem::is_directory(candidate2, ec))
+    {
+        return candidate2;
+    }
+
+    return candidate1;
 }
 
 std::filesystem::path user_config_directory()

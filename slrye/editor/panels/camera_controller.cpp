@@ -23,6 +23,16 @@ bool CameraController::update(
         changed = true;
     }
 
+    if (input.pan &&
+        (input.pan_delta_x != 0.0f || input.pan_delta_y != 0.0f))
+    {
+        const glm::vec3 pan_offset =
+            -camera.right() * (input.pan_delta_x * pan_speed) +
+            camera.up() * (input.pan_delta_y * pan_speed);
+        camera.translate(pan_offset);
+        changed = true;
+    }
+
     glm::vec3 movement = movement_direction(camera, input);
     const float movement_length = glm::length(movement);
     if (movement_length > 0.0f)
@@ -34,7 +44,7 @@ bool CameraController::update(
         changed = true;
     }
 
-    if (input.rotate && input.wheel_delta != 0.0f)
+    if (input.wheel_delta != 0.0f)
     {
         const float wheel = std::clamp(input.wheel_delta, -10.0f, 10.0f);
         camera.translate(camera.forward() * wheel * zoom_speed);

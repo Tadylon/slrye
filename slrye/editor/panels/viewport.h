@@ -66,6 +66,7 @@ private:
     bool initialized_ = false;
     bool camera_dirty_ = true;
     bool rotating_ = false;
+    bool panning_ = false;
     bool visible_ = true;
     bool show_grid_ = true;
 };

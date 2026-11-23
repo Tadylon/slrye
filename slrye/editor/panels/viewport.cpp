@@ -72,7 +72,7 @@ void Viewport::render()
 
     const bool scene_changed = scene_->revision() != rendered_scene_revision_;
     const bool size_changed = width != rendered_width_ || height != rendered_height_;
-    if (initialized_ && (camera_dirty_ || scene_changed || size_changed))
+    if (initialized_ && (camera_dirty_ || scene_changed || size_changed || renderer_.texture_id() == ImTextureID_Invalid))
     {
         std::string error;
         if (renderer_.render(
@@ -244,6 +244,13 @@ void Viewport::process_input(
     const ImVec2& image_size)
 {
     const bool hovered = ImGui::IsItemHovered();
+    if (hovered && (ImGui::IsMouseClicked(ImGuiMouseButton_Right) ||
+                    ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+                    ImGui::IsMouseClicked(ImGuiMouseButton_Middle)))
+    {
+        ImGui::SetWindowFocus();
+    }
+
     if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right))
     {
         rotating_ = true;
@@ -253,11 +260,23 @@ void Viewport::process_input(
         rotating_ = false;
     }
 
+    if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Middle))
+    {
+        panning_ = true;
+    }
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Middle))
+    {
+        panning_ = false;
+    }
+
     CameraControllerInput input;
     input.rotate = rotating_;
+    input.pan = panning_;
     input.boost = ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift);
     input.mouse_delta_x = rotating_ ? io.MouseDelta.x : 0.0f;
     input.mouse_delta_y = rotating_ ? io.MouseDelta.y : 0.0f;
+    input.pan_delta_x = panning_ ? io.MouseDelta.x : 0.0f;
+    input.pan_delta_y = panning_ ? io.MouseDelta.y : 0.0f;
     input.wheel_delta = hovered ? io.MouseWheel : 0.0f;
     input.delta_seconds = io.DeltaTime;
     if (rotating_)

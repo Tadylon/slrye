@@ -20,6 +20,7 @@ namespace slrye::engine
 {
 
 class Scene;
+struct VulkanContext;
 
 }
 

@@ -47,7 +47,7 @@ TEST_CASE("Editor view submits a non-empty ImGui frame")
     state.show_demo_window = true;
 
     ImGui::NewFrame();
-    const ImVec4 clear_color = slrye::render(io, state);
+    const ImVec4 clear_color = slrye::render(state);
 
     // ⭐ 诊断代码
     auto* win = ImGui::FindWindowByName("SLRYE");

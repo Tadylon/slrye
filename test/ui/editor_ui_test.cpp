@@ -13,6 +13,11 @@ public:
     {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+        unsigned char* pixels = nullptr;
+        int width = 0, height = 0;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+        io.Fonts->SetTexID((ImTextureID)1);
     }
 
     ~ImGuiContextScope()

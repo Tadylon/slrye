@@ -7,7 +7,6 @@
 #include <editor/app/launch_options.h>
 
 #include <engine/services/project/recent_projects.h>
-// #include <engine/plugin/plugin_manager.h>
 #include <editor/shell/editor_settings.h>
 
 namespace slrye::engine

@@ -33,6 +33,13 @@ void EditorUI::initialize(EditorSettings& settings)
     {
         io.Fonts->AddFontDefault();
     }
+    if (io.Fonts->TexData != nullptr)
+    {
+        unsigned char* pixels = nullptr;
+        int width = 0, height = 0;
+        io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+        io.Fonts->SetTexID((ImTextureID)1);
+    }
 
     theme_manager_.apply(settings.theme);
 }
@@ -93,6 +100,8 @@ ImVec4 EditorUI::render()
 void EditorUI::shutdown()
 {
     viewport_.shutdown();
+    hierarchy_panel_.set_scene(nullptr);
+    inspector_panel_.set_scene(nullptr);
     settings_ = nullptr;
     scene_ = nullptr;
     selected_entity_.reset();

@@ -31,6 +31,8 @@ slrye_add_test(slrye_scene_renderer_tests services/scene_renderer_test.cpp)
 slrye_add_test(slrye_ui_tests ui/editor_ui_test.cpp)
 slrye_add_test(slrye_camera_controller_tests views/camera_controller_test.cpp)
 slrye_add_test(slrye_views_tests views/view_test.cpp)
+slrye_add_test(slrye_audio_tests audio/audio_test.cpp)
+slrye_add_test(slrye_resources_tests resources/resources_test.cpp)
 
 if(TARGET slrye_demo_plugin)
     add_executable(slrye_plugin_integration_tests services/plugin_manager_test.cpp)

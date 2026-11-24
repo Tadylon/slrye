@@ -11,6 +11,8 @@
     "miniaudio",
     "vk-bootstrap",
     "vulkan-memory-allocator",
+    "fastgltf",
+    "stb",
     {
       "name": "imgui",
       "features": [

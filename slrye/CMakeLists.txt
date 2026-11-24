@@ -10,8 +10,11 @@ find_package(yaml-cpp CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(vk-bootstrap CONFIG REQUIRED)
 find_package(VulkanMemoryAllocator CONFIG REQUIRED)
+find_package(fastgltf CONFIG REQUIRED)
 
 set(SLRYE_ENGINE_SOURCES
+    engine/audio/audio_engine.cpp
+    engine/audio/sound.cpp
     engine/core/log.cpp
     engine/platform/file_io.cpp
     engine/platform/path_encoding.cpp
@@ -19,6 +22,9 @@ set(SLRYE_ENGINE_SOURCES
     engine/renderer/camera.cpp
     engine/renderer/scene_geometry.cpp
     engine/renderer/scene_renderer.cpp
+    engine/resources/mesh.cpp
+    engine/resources/model.cpp
+    engine/resources/texture.cpp
     engine/rhi/vulkan/vulkan_backend.cpp
     engine/scene/scene.cpp
     engine/scene/picking.cpp
@@ -61,6 +67,7 @@ target_link_libraries(slrye_runtime PUBLIC
     yaml-cpp::yaml-cpp
     vk-bootstrap::vk-bootstrap
     GPUOpen::VulkanMemoryAllocator
+    fastgltf::fastgltf
 )
 
 target_include_directories(slrye_runtime

@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -10,6 +11,11 @@
 
 namespace slrye::engine
 {
+
+class Sound;
+class Mesh;
+struct Material;
+class Model;
 
 /**
  * @brief 实体名称组件（可读标识）
@@ -24,9 +30,9 @@ struct NameComponent
  */
 struct TransformComponent
 {
-    glm::vec3 position{0.0f, 0.0f, 0.0f};      ///< 本地世界坐标系空间三维位置 (X, Y, Z)
-    glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f};///< 四元数表示的三维旋转 (W, X, Y, Z)
-    glm::vec3 scale{1.0f, 1.0f, 1.0f};         ///< 三轴缩放比例 (SX, SY, SZ)
+    glm::vec3 position{0.0f, 0.0f, 0.0f};       ///< 本地世界坐标系空间三维位置 (X, Y, Z)
+    glm::quat rotation{1.0f, 0.0f, 0.0f, 0.0f}; ///< 四元数表示的三维旋转 (W, X, Y, Z)
+    glm::vec3 scale{1.0f, 1.0f, 1.0f};          ///< 三轴缩放比例 (SX, SY, SZ)
 };
 
 /**
@@ -87,14 +93,78 @@ enum class ColliderType
  */
 struct ColliderComponent
 {
-    ColliderType type = ColliderType::Box;   ///< 碰撞体类型
-    glm::vec3 half_extents{0.5f, 0.5f, 0.5f};///< 盒体从中心到各面的半长半宽半高 (X, Y, Z)
-    float radius = 0.5f;                     ///< 球体或胶囊体截面半径
-    float height = 2.0f;                     ///< 胶囊体总高度
-    bool enabled = true;                     ///< 碰撞体是否生效
+    ColliderType type = ColliderType::Box;    ///< 碰撞体类型
+    glm::vec3 half_extents{0.5f, 0.5f, 0.5f}; ///< 盒体从中心到各面的半长半宽半高 (X, Y, Z)
+    float radius = 0.5f;                      ///< 球体或胶囊体截面半径
+    float height = 2.0f;                      ///< 胶囊体总高度
+    bool enabled = true;                      ///< 碰撞体是否生效
 };
 
-}
+// ==========================================
+// 音频子系统组件 (Audio Components)
+// ==========================================
+
+/**
+ * @brief 3D 空间音频主监听者组件（Audio Listener）
+ * 
+ * 通常挂载于主摄像机实体或玩家实体上，AudioEngine 每帧依据其挂载实体的 TransformComponent
+ * 更新全局 miniaudio 听音者的世界位置与三维朝向。
+ */
+struct AudioListenerComponent
+{
+    bool active = true; ///< 是否激活为当前音频监听者
+};
+
+/**
+ * @brief 3D 空间声源发声组件（Audio Source）
+ * 
+ * 挂载于任意发声实体上，支持 3D 空间声源衰减或 2D 背景音乐广播。
+ */
+struct AudioSourceComponent
+{
+    std::string file_path;                          ///< 音频资源相对/绝对路径
+    float volume = 1.0f;                            ///< 播放音量 [0.0, 1.0+]
+    float pitch = 1.0f;                             ///< 音高频率调节 [0.5, 2.0]
+    bool looping = false;                           ///< 是否循环播放
+    bool is_3d = true;                              ///< 是否启用 3D 空间定向衰减
+    bool play_on_awake = true;                      ///< 场景加载后是否立即自动播放
+    float min_distance = 1.0f;                      ///< 3D 声源全音量衰减起始距离
+    float max_distance = 50.0f;                     ///< 3D 声源衰减截止距离
+    std::shared_ptr<Sound> sound_instance = nullptr;///< 运行时音频实例缓存
+};
+
+// ==========================================
+// 3D 几何与材质组件 (Rendering & Resource Components)
+// ==========================================
+
+/**
+ * @brief 3D 几何网格渲染组件（Mesh Component）
+ */
+struct MeshComponent
+{
+    std::shared_ptr<Mesh> mesh = nullptr; ///< 关联的静态网格资源
+    std::string asset_path;               ///< 资源来源路径或内置几何体名（如 "cube", "sphere"）
+    uint32_t submesh_index = 0;           ///< 所指定的子网格索引
+};
+
+/**
+ * @brief 现代 PBR 材质组件（Material Component）
+ */
+struct MaterialComponent
+{
+    std::shared_ptr<Material> material = nullptr; ///< 绑定的 PBR 材质资产
+};
+
+/**
+ * @brief 复合 3D 模型资产组件（Model Component）
+ */
+struct ModelComponent
+{
+    std::shared_ptr<Model> model = nullptr; ///< 载入的复合 glTF / GLB 模型资产
+    std::string file_path;                  ///< 模型文件磁盘路径
+};
+
+} // namespace slrye::engine
 
 namespace slrye
 {
@@ -106,4 +176,13 @@ using engine::LightType;
 using engine::LightComponent;
 using engine::ColliderType;
 using engine::ColliderComponent;
+
+// Audio
+using engine::AudioListenerComponent;
+using engine::AudioSourceComponent;
+
+// Resources
+using engine::MeshComponent;
+using engine::MaterialComponent;
+using engine::ModelComponent;
 }

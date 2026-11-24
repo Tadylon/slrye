@@ -17,10 +17,14 @@
     * 鼠标右键拖动触发自由视角旋转，中键拖动触发平移，滚轮滑动触发变焦；
     * 鼠标左键点击视口内容时，将屏幕点击点反变换为视口空间射线，调用底层 `pick_entity` 挑选命中实体并与 Hierarchy/Inspector 双向同步选中态。
 
-### 2.2 `camera_controller.h` / `camera_controller.cpp`
-* **定位**：编辑器摄像机输入操控器。
+### 2.2 `viewport_camera_controller.h` / `viewport_camera_controller.cpp`（原 `camera_controller`）
+* **定位**：3D 视口相机交互操纵控制器（专用于 Viewport 的视角算法组件，非独立 UI 面板）。
+* **命名与归属说明**：
+  * 在 `panels` 模块中，其他类均为带 `render()` 的独立 UI 窗口（如 `ConsolePanel`、`InspectorPanel`）；
+  * 本组件没有 UI 绘制逻辑，它由 `Viewport` 内部独占持有，负责将用户在视口中产生的鼠标与键盘交互转化为 `PerspectiveCamera` 的数学位移与旋转；
+  * 重命名为 `ViewportCameraController`（输入结构为 `ViewportCameraInput`），既消除了与独立 UI 面板的命名混淆，又彻底避免了与未来游戏运行时的相机角色控制器冲突；同时保留 `CameraController` 别名完全向下兼容。
 * **主要内容**：
-  * `CameraControllerInput`：封装当前帧视口收集到的交互状态（旋转标位 `rotate`、平移标位 `pan`、WASD 漫游键态、Shift 加速键 `boost`、鼠标像素位移与滚轮增量）；
+  * `ViewportCameraInput`：封装当前帧视口收集到的交互状态（旋转标位 `rotate`、平移标位 `pan`、WASD 漫游键态、Shift 加速键 `boost`、鼠标像素位移与滚轮增量）；
   * `update(camera, input)`：
     * 处理右键视角旋转（更新摄像机 `yaw` 与 `pitch`）；
     * 处理中键拖拽平移（沿摄像机局部 `right` 与 `up` 平面平移）；

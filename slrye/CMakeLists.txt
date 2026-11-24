@@ -20,9 +20,9 @@ set(SLRYE_ENGINE_SOURCES
     engine/renderer/scene_geometry.cpp
     engine/renderer/scene_renderer.cpp
     engine/rhi/vulkan/vulkan_backend.cpp
+    engine/scene/scene.cpp
     engine/scene/picking.cpp
     engine/scene/scene_transform.cpp
-    engine/scene/scene.cpp
     engine/services/project/project_file.cpp
     engine/services/project/recent_projects.cpp
     engine/services/serialization/scene_serializer.cpp
@@ -37,6 +37,7 @@ set(SLRYE_EDITOR_SOURCES
     editor/shell/theme_manager.cpp
     editor/shell/styles/spectrum.cpp
     editor/shell/styles/style.cpp
+    editor/panels/viewport_camera_controller.cpp
     editor/panels/camera_controller.cpp
     editor/panels/console_panel.cpp
     editor/panels/inspector_panel.cpp

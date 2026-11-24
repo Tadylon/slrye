@@ -10,7 +10,7 @@
 #include <engine/renderer/camera.h>
 #include <engine/scene/entity_id.h>
 #include <engine/renderer/scene_renderer.h>
-#include <editor/panels/camera_controller.h>
+#include <editor/panels/viewport_camera_controller.h>
 
 namespace slrye::engine
 {
@@ -19,6 +19,19 @@ struct VulkanContext;
 }
 
 namespace slrye {
+
+/**
+ * @brief 3D 场景视口面板（Viewport Panel）
+ * 
+ * 职责与层级关系：
+ * 1. 位于 Editor Panels 模块，作为核心 UI 面板呈现 3D 渲染画面；
+ * 2. 内部持有：
+ *    - `SceneRenderer renderer_`: 负责调用 Vulkan 离屏管线绘制网格、网格地面与高亮选框；
+ *    - `PerspectiveCamera camera_`: 视口 3D 透视相机数学模型；
+ *    - `ViewportCameraController controller_`: 视口相机交互控制器（处理鼠标右键旋转、中键平移、WASD 漫游、滚轮推拉）；
+ * 3. 负责将 SceneRenderer 离屏渲染生成的 ImTextureID 投射在 ImGui 视口窗口；
+ * 4. 负责向 Scene 发起空间射线投射（Ray Picking），实现鼠标点击 3D 实体拾取选中。
+ */
 class Viewport
 {
 public:
@@ -55,7 +68,7 @@ private:
     void request_redraw() noexcept;
 
     engine::SceneRenderer renderer_;
-    CameraController controller_;
+    ViewportCameraController controller_;
     engine::PerspectiveCamera camera_;
     engine::Scene* scene_ = nullptr;
     std::optional<engine::EntityId> selected_entity_;

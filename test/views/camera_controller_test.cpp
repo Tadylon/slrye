@@ -68,3 +68,20 @@ TEST_CASE("Camera controller pans along camera plane")
     CHECK(camera.position().x < 0.0f);
     CHECK(camera.position().y > 0.0f);
 }
+
+TEST_CASE("Viewport camera controller directly works with new type names")
+{
+    slrye::PerspectiveCamera camera;
+    slrye::ViewportCameraController controller;
+    camera.set_orientation(0.0f, 0.0f);
+    camera.set_position(glm::vec3(0.0f));
+
+    slrye::ViewportCameraInput input;
+    input.rotate = true;
+    input.mouse_delta_x = 10.0f;
+    input.mouse_delta_y = 5.0f;
+
+    CHECK(controller.update(camera, input));
+    CHECK(camera.yaw_degrees() == Catch::Approx(1.5f));
+    CHECK(camera.pitch_degrees() == Catch::Approx(-0.75f));
+}

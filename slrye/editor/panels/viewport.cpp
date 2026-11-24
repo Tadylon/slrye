@@ -269,7 +269,7 @@ void Viewport::process_input(
         panning_ = false;
     }
 
-    CameraControllerInput input;
+    ViewportCameraInput input;
     input.rotate = rotating_;
     input.pan = panning_;
     input.boost = ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift);
